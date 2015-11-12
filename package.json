@@ -1,0 +1,26 @@
+{
+  "name": "siad",
+  "version": "1.0.0",
+  "description": "Node wrapper for siad of the Sia network",
+  "main": "index.js",
+  "scripts": {},
+  "keywords": [
+    "Sia",
+    "Decentralized",
+    "Storage",
+    "Cloud",
+    "Altcoin",
+    "Cryptocurrency",
+    "Sia-UI"
+  ],
+  "author": "Ming Luo",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^3.4.1",
+    "chai-as-promised": "^5.1.0",
+    "mocha": "^2.3.3"
+  },
+  "dependencies": {
+    "request": "^2.65.0"
+  }
+}
