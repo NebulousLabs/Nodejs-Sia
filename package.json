@@ -1,6 +1,6 @@
 {
   "name": "siad",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "Node wrapper for siad of the Sia network",
   "main": "index.js",
   "scripts": {},
