@@ -13,15 +13,15 @@ const defaults = {
 	fileName: process.platform === 'win32' ? 'siad.exe' : 'sia',
 };
 
-// What we'll eventually export
-var siad = {};
-
 // Helper function to transfer object values
 function addProps(from, onto) {
 	for (var key in from) {
 		onto[key] = from[key];
 	}
 }
+
+// What we'll eventually export
+var siad = {};
 
 // Set default values
 addProps(defaults, siad);
@@ -56,13 +56,21 @@ const requestSettings = {
 function call(opts, callback) {
 	addProps(requestSettings, opts);
 	opts.url = siad.address + opts.url;
-	request(opts, callback);
+	request(opts, function(error, response, body) {
+		// Catches improperly constructed JSONs that JSON.parse would
+		// normally return a weird error on
+		try {
+			callback(error, JSON.parse(body));
+		} catch(e) {
+			console.error(e, 'Non JSON response: ' + response, body);
+		}
+	});
 }
 
 // Modules
 siad.consensus = require('./js/consensus.js')(call);
 
-// export 
+// Export 
 module.exports = siad;
 
 

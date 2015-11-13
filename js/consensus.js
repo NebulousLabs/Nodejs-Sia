@@ -1,17 +1,17 @@
 'use strict';
 
 var call;
+var mod = '/consensus';
 function consensus(callback) {
-	var module = '/consensus'
 	call({
-		url: module,
+		url: mod,
 		method: 'GET',
 	}, callback);
 }
 
 consensus.block = function(height, callback) {
 	call({
-		url: module + '/block',
+		url: mod + '/block',
 		method: 'GET',
 		qs: height,
 	}, callback);
