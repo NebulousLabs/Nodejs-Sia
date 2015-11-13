@@ -1,13 +1,23 @@
 'use strict';
 
+var call;
 function consensus(callback) {
-	this.block = function(height, cb) {
-		this.request.get({
-			url:this.address,
-			qs:height,
-		}, cb);
-	}
-	this.request.get(this.address, callback);
+	var module = '/consensus'
+	call({
+		url: module,
+		method: 'GET',
+	}, callback);
 }
 
-module.exports = consensus;
+consensus.block = function(height, callback) {
+	call({
+		url: module + '/block',
+		method: 'GET',
+		qs: height,
+	}, callback);
+}
+
+module.exports = function(requester) {
+	call = requester;
+	return consensus;
+};
