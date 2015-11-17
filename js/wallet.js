@@ -42,7 +42,7 @@ wallet.init = function (params, callback) {
 
 wallet.load = {}
 
-wallet.load['033x'] = function (params, callback) {
+wallet.load.fromFork = function (params, callback) {
   call({
     url: mod + '/load/033x',
     method: 'POST',

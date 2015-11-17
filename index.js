@@ -1,6 +1,8 @@
 'use strict'
 
-var Path = require('path')
+// Library for making requests
+var request = require('request')
+var path = require('path')
 
 // Default values
 const defaults = {
@@ -9,46 +11,21 @@ const defaults = {
   hostPort: '9982',
   host: 'http://localhost',
   address: 'http://localhost:9980',
-  directory: Path.join(__dirname, '../Sia'),
+  directory: path.join(__dirname, '../Sia'),
   fileName: process.platform === 'win32' ? 'siad.exe' : 'sia'
+}
+
+// Options to be applied to every api call
+const requestSettings = {
+  headers: {
+    'User-Agent': 'Sia-Agent'
+  }
 }
 
 // Helper function to transfer object values
 function addProps (from, onto) {
   for (var key in from) {
     onto[key] = from[key]
-  }
-}
-
-// What we'll eventually export
-var siad = {}
-
-// Set default values
-addProps(defaults, siad)
-
-// To set different values
-siad.config = function (options) {
-  if (!options) {
-    return siad
-  }
-
-  // extract options or defaults
-  this.port = options.port || defaults.port
-  this.rpcPort = options.rpcPort || defaults.rpcPort
-  this.hostPort = options.hostPort || defaults.hostPort
-  this.host = options.host || defaults.host
-  this.directory = options.directory || defaults.directory
-  this.fileName = options.fileName || defaults.fileName
-  this.address = this.host + ':' + this.port
-}
-
-// Library for making requests
-var request = require('request')
-
-// Options to be applied to every api call
-const requestSettings = {
-  headers: {
-    'User-Agent': 'Sia-Agent'
   }
 }
 
@@ -67,9 +44,93 @@ function call (opts, callback) {
   })
 }
 
-// Modules
-siad.consensus = require('./js/consensus.js')(call)
-siad.wallet = require('./js/wallet.js')(call)
+// Given two callbacks, runs one of them depending on success of call to siad
+function ifRunning (isRunning, isNotRunning) {
+  var self = this
+  this.daemon.version(function (err) {
+    self.running = !err
+    if (self.running) {
+      isRunning()
+    } else if (!self.running) {
+      isNotRunning()
+    }
+  })
+}
+
+// Polls the siad API until it comes online
+function waitForSiad(callback) {
+  // TODO: emit 'started' event
+  ifRunning(function() {
+    console.log('Started siad!')
+    callback()
+  }, function() {
+    // TODO: emit 'loaded' event
+    // check once per second until successful
+    setTimeout(waitForSiad, 1000)
+    console.log('loading')
+  })
+}
+
+// Object to export
+var siad = {
+  // Modules
+  daemon: require('./js/daemon.js')(call),
+  consensus: require('./js/consensus.js')(call),
+  wallet: require('./js/wallet.js')(call),
+  // Wrapper properties
+  config: function (options) {
+    addProps(options, this)
+    return siad
+  },
+  download: require('./js/download.js'),
+  running: false,
+  start: function (callback) {
+    self = this
+    ifRunning(function () {
+      callback(new Error('siad is already running!'))
+    }, function () {
+      // daemon logs output to files
+      var out, err
+      Fs.open(Path.join(self.directory, 'daemonOut.log'), 'w', function(e, filedescriptor) {
+        out = filedescriptor
+      })
+      Fs.open(Path.join(self.directory, 'daemonErr.log'), 'w', function(e, filedescriptor) {
+        err = filedescriptor
+      })
+
+      // daemon process without parent stdio pipes
+      var processOptions = {
+        stdio: ['ignore', out, err],
+        cwd: Path.join(__dirname, siaPath),
+      }
+      var daemonProcess = require('process').spawn(path.join(self.directory, self.fileName), processOptions)
+
+      // Listen for siad erroring
+      daemonProcess.on('error', function (error) {
+        // TODO: emit events from the package itself
+        if (error === 'ENOENT') {
+          console.error('Missing siad!')
+        } else {
+          console.error('siad errored: ' + error)
+        }
+      })
+
+      // Listen for siad exiting
+      daemonProcess.on('exit', function(code) {
+        self.running = false
+        console.log('siad exited with code: ' + code, 'stop')
+      })
+
+      // Wait for siad to start
+      waitForSiad(callback)
+    })
+  },
+  stop: this.daemon.stop,
+  ifRunning: ifRunning
+}
+
+// Set default values
+addProps(defaults, siad)
 
 // Export
 module.exports = siad

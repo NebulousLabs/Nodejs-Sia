@@ -9,6 +9,7 @@
   "main": "index.js",
   "scripts": {
     "install": "node js/download-Sia.js",
+    "clean": "rm -rf Sia node_modules",
     "test": "npm run lint && mocha",
     "lint": "standard --verbose | snazzy"
   },

@@ -10,13 +10,11 @@ function consensus (callback) {
   }, callback)
 }
 
-consensus.block = function (height, callback) {
+consensus.block = function (params, callback) {
   call({
     url: mod + '/block',
     method: 'GET',
-    qs: {
-      height: height
-    }
+    qs: params
   }, callback)
 }
 

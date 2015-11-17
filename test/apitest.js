@@ -3,6 +3,8 @@
 
 // Libraries required for testing
 var Chai = require('chai')
+var fs = require('fs')
+var path = require('path')
 
 // Chai's should syntax is executed to edit Object to have Object.should
 var should = Chai.should()
@@ -27,7 +29,9 @@ describe('API calls to', function () {
       })
     })
     it('/block', function (done) {
-      siad.consensus.block(0, function (err, body) {
+      siad.consensus.block({
+        height: 0
+      }, function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('block')
@@ -64,7 +68,11 @@ describe('API calls to', function () {
     })
 
     it('/backup', function (done) {
-      siad.wallet.backup(__dirname + '/backup', function (err, body) {
+      var testloc = path.join(__dirname, 'test', '.test')
+      fs.closeSync(fs.openSync(testloc, 'w'))
+      siad.wallet.backup({
+        filepath: testloc
+      }, function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('Success')
@@ -73,16 +81,18 @@ describe('API calls to', function () {
     })
 
     it('/init', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.init({
+        dictionary: 'english'
+      }, function (err, body) {
         should.not.exist(err)
         should.exist(body)
-        body.should.have.key('encrypted')
-        body.should.have.key('unlocked')
+        body.should.have.key('primaryseed')
       })
     })
 
     it('/load/033x', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.load.fromFork({
+      }, function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -91,7 +101,7 @@ describe('API calls to', function () {
     })
 
     it('/load/seed', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.load.seed(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -100,7 +110,7 @@ describe('API calls to', function () {
     })
 
     it('/load/siag', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.load.siag(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -109,7 +119,7 @@ describe('API calls to', function () {
     })
 
     it('/lock', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.lock(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -118,7 +128,7 @@ describe('API calls to', function () {
     })
 
     it('/seeds', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.seeds(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -127,7 +137,7 @@ describe('API calls to', function () {
     })
 
     it('/siacoins', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.siacoins(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -136,7 +146,7 @@ describe('API calls to', function () {
     })
 
     it('/siafunds', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.siafunds(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -145,7 +155,7 @@ describe('API calls to', function () {
     })
 
     it('/transaction/$(id)', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.transaction(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -154,7 +164,7 @@ describe('API calls to', function () {
     })
 
     it('/transactions', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.transactions(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -163,7 +173,7 @@ describe('API calls to', function () {
     })
 
     it('/transactions/$(addr)', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.transactions(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
@@ -172,7 +182,7 @@ describe('API calls to', function () {
     })
 
     it('/unlock', function (done) {
-      siad.wallet(function (err, body) {
+      siad.wallet.unlock(function (err, body) {
         should.not.exist(err)
         should.exist(body)
         body.should.have.key('encrypted')
