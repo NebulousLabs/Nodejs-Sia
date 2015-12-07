@@ -1,148 +1,172 @@
 'use strict'
 
 // Library for making requests
-var request = require('request')
-var path = require('path')
+const Request = require('request')
 
-// Default values
-const defaults = {
-  port: '9980',
-  rpcPort: '9981',
-  hostPort: '9982',
-  host: 'http://localhost',
-  address: 'http://localhost:9980',
-  directory: path.join(__dirname, '..', 'Sia'),
-  fileName: process.platform === 'win32' ? 'siad.exe' : 'siad'
-}
+// Necessary node libraries
+const Path = require('path')
+const Util = require('util')
+const EventEmitter = require('events')
 
-// Options to be applied to every api call
-const requestSettings = {
-  headers: {
-    'User-Agent': 'Sia-Agent'
-  }
-}
-
-// Helper function to transfer object values
-function addProps (from, onto) {
-  for (var key in from) {
-    if (from.hasOwnProperty(key)) {
-      onto[key] = from[key]
-	}
-  }
-}
-
-// Add call options like headers to every call made
-function call (opts, callback) {
-  addProps(requestSettings, opts)
-  opts.url = siad.address + opts.url
-  request(opts, function (error, response, body) {
-    // Catches improperly constructed JSONs that JSON.parse would
-    // normally return a weird error on
-    if (!error && response.statusCode === 200) {
-      callback(error, JSON.parse(body))
-    } else {
-      callback(error, body)
+/**
+ * DaemonManager, a closure, initializes siad as a background process and
+ * provides functions to interact with it
+ * @class DaemonManager
+ */
+function DaemonManager () {
+  // siad details with default values
+  var siad = {
+    path: Path.join(__dirname, 'Sia'),
+    address: 'http://localhost:9980',
+    command: process.platform === 'win32' ? 'siad.exe' : 'siad',
+    headers: {
+      'User-Agent': 'Sia-Agent'
     }
-  })
-}
-
-// Given two callbacks, runs one of them depending on success of call to siad
-function ifRunning (isRunning, isNotRunning) {
+  }
+  // Object to be returned
   var self = this
-  this.daemon.version(function (err) {
-    self.running = !err
-    if (self.running) {
-      isRunning()
-    } else if (!self.running) {
-      isNotRunning()
+  // Track if Daemon is running
+  this.running = false
+  // Inherit `EventEmitter` properties
+  EventEmitter.call(this)
+
+  /**
+   * Relays calls to daemonAPI with the localhost:port address appended
+   * @function DaemonManager#apiCall
+   * @param {apiCall} call - function to run if Siad is running
+   * @param {apiResponse} callback
+   */
+  function apiCall (call, callback) {
+    // Things to prevent unimportant errors
+    if (typeof call === 'string') {
+      call = { url: call }
     }
-  })
-}
+    callback = callback || function () {}
 
-// Polls the siad API until it comes online
-function waitForSiad (callback) {
-  // TODO: emit 'started' event
-  ifRunning(function() {
-    console.log('Started siad!')
-    callback()
-  }, function() {
-    // TODO: emit 'loaded' event
-    // check once per second until successful
-    setTimeout(waitForSiad, 1000)
-    console.log('loading')
-  })
-}
-
-// Object to export
-var siad = {
-  // Modules
-  daemon: require('./js/daemon.js')(call),
-  consensus: require('./js/consensus.js')(call),
-  wallet: require('./js/wallet.js')(call),
-  // Wrapper properties
-  config: function (options) {
-    addProps(options, this)
-    return siad
-  },
-  download: function(path, callback) {
-    if (typeof path === 'string') {
-      this.directory = path
-	} else {
-      // the first argument is either undefined or the callback
-	  callback = path
-      path = this.directory
-	}
-    require('./js/download.js')(path, callback);
-  }
-  running: false,
-  start: function (callback) {
-    self = this
-    ifRunning(function () {
-      callback(new Error('siad is already running!'))
-    }, function () {
-      // daemon logs output to files
-      var out, err
-      Fs.open(Path.join(self.directory, 'daemonOut.log'), 'w', function(e, filedescriptor) {
-        out = filedescriptor
-      })
-      Fs.open(Path.join(self.directory, 'daemonErr.log'), 'w', function(e, filedescriptor) {
-        err = filedescriptor
-      })
-
-      // daemon process without parent stdio pipes
-      var processOptions = {
-        stdio: ['ignore', out, err],
-        cwd: Path.join(__dirname, siaPath),
+    // Setup request
+    call.url = siad.address + call.url
+    call.json = true
+    call.headers = siad.headers
+    return new Request(call, function (error, response, body) {
+      self.running = !error
+      if (!error && response.statusCode !== 200) {
+        // siad's error is returned as body
+        error = body
       }
-      var daemonProcess = require('process').spawn(path.join(self.directory, self.fileName), processOptions)
+      if (typeof callback === 'function') {
+        callback(error, body)
+      }
+    })
+  }
+
+  /**
+   * Checks whether siad is running on the current address
+   * @function DaemonManager#ifRunning
+   * @param {callback} callback - returns if siad is running
+   */
+  function ifRunning (is, not) {
+    apiCall('/daemon/version', function (err) {
+      self.running = !err
+      if (self.running && typeof is === 'function') {
+        is()
+      } else if (typeof not === 'function') {
+        not()
+      }
+    })
+  }
+
+  // Polls the siad API until it comes online
+  function waitUntilLoaded (callback) {
+    ifRunning(callback, function () {
+      setTimeout(function () {
+        waitUntilLoaded(callback)
+      }, 1000)
+    })
+  }
+
+  /**
+   * Starts the daemon as a long running background process
+   * @param {callback} callback - function to be run if successful
+   */
+  function start (callback) {
+    ifRunning(function () {
+      callback(new Error('Attempted to start siad when it was already running'))
+    }, function () {
+      // Set siad folder as configured siadPath
+      var processOptions = {
+        cwd: siad.path
+      }
+      const Process = require('child_process').spawn
+      var daemonProcess = new Process(siad.command, processOptions)
 
       // Listen for siad erroring
+      // TODO: How to change this error to give more accurate hint. Does
+      // this work?
       daemonProcess.on('error', function (error) {
-        // TODO: emit events from the package itself
-        if (error === 'ENOENT') {
-          console.error('Missing siad!')
-        } else {
-          console.error('siad errored: ' + error)
+        if (error === 'Error: spawn ' + siad.command + ' ENOENT') {
+          error.message = 'Missing siad!'
         }
+        self.emit('error', error)
       })
-
-      // Listen for siad exiting
-      daemonProcess.on('exit', function(code) {
+      daemonProcess.on('exit', function (code) {
         self.running = false
-        console.log('siad exited with code: ' + code, 'stop')
+        self.emit('exit', code)
       })
 
-      // Wait for siad to start
-      waitForSiad(callback)
+      // Wait until siad finishes loading to call callback
+      waitUntilLoaded(callback)
     })
-  },
-  stop: this.daemon.stop,
-  ifRunning: ifRunning
+  }
+
+  /**
+   * Sends a stop call to the daemon
+   * @param {callback} callback - function to be run if successful
+   */
+  function stop (callback) {
+    apiCall('/daemon/stop', callback)
+  }
+
+  /**
+   * Sets the member variables based on the passed config
+   * @param {config} c - the config object derived from config.json
+   * @param {callback} callback - returns if siad is running
+   */
+  function configure (settings, callback) {
+    siad.path = settings.siad.path || siad.path
+    siad.address = settings.siad.address || siad.address
+    siad.command = settings.siad.command || siad.command
+    if (typeof callback === 'function') {
+      callback()
+    }
+  }
+
+  /**
+   * Downloads siad and siac to a specified or default location
+   * @param {string} path - An optional location of where to download to
+   * @param {callback} callback
+   */
+  function download (path, callback) {
+    if (typeof path === 'string') {
+      siad.path = path
+    } else {
+      path = siad.path
+      // the first argument is either undefined or the callback
+      callback = path
+    }
+    require('./download.js')(path, callback)
+  }
+
+  // Make certain members public
+  this.call = apiCall
+  this.ifRunning = ifRunning
+  this.start = start
+  this.stop = stop
+  this.configure = configure
+  this.download = download
+  return this
 }
 
-// Add default and module properties
-addProps(defaults, siad)
-addProps(require('./js/siaMath.js'))
+// Inherit functions from `EventEmitter`'s prototype
+Util.inherits(DaemonManager, EventEmitter)
 
-// Export
-module.exports = siad
+module.exports = new DaemonManager()

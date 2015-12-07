@@ -1,4 +1,4 @@
-# siad
+# Sia.js
 
 ![Visit sia.tech for the bird's eye view of what Sia is](/doc/assets/files.png)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
@@ -22,7 +22,7 @@ npm install siad
 and used in code via
 
 ```js
-var siad = require('siad');
+var siad = require('sia.js');
 ```
 
 ## License

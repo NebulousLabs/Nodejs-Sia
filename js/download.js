@@ -29,9 +29,9 @@ module.exports = function (output, callback) {
   if (!output) {
     output = path.join(__dirname, 'Sia')
   }
-  var lastIndex = output.lastIndexOf("/")
+  var lastIndex = output.lastIndexOf('/')
   outputPath = output.substring(0, lastIndex)
-  outputDir = output.substring(lastIndex);
+  outputDir = output.substring(lastIndex)
 
   // Interpret filename from process environment variables
   var platform, arch, extension
