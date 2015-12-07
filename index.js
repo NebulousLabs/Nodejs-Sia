@@ -11,8 +11,8 @@ const defaults = {
   hostPort: '9982',
   host: 'http://localhost',
   address: 'http://localhost:9980',
-  directory: path.join(__dirname, '../Sia'),
-  fileName: process.platform === 'win32' ? 'siad.exe' : 'sia'
+  directory: path.join(__dirname, '..', 'Sia'),
+  fileName: process.platform === 'win32' ? 'siad.exe' : 'siad'
 }
 
 // Options to be applied to every api call
@@ -25,7 +25,9 @@ const requestSettings = {
 // Helper function to transfer object values
 function addProps (from, onto) {
   for (var key in from) {
-    onto[key] = from[key]
+    if (from.hasOwnProperty(key)) {
+      onto[key] = from[key]
+	}
   }
 }
 
@@ -58,7 +60,7 @@ function ifRunning (isRunning, isNotRunning) {
 }
 
 // Polls the siad API until it comes online
-function waitForSiad(callback) {
+function waitForSiad (callback) {
   // TODO: emit 'started' event
   ifRunning(function() {
     console.log('Started siad!')
@@ -82,7 +84,16 @@ var siad = {
     addProps(options, this)
     return siad
   },
-  download: require('./js/download.js'),
+  download: function(path, callback) {
+    if (typeof path === 'string') {
+      this.directory = path
+	} else {
+      // the first argument is either undefined or the callback
+	  callback = path
+      path = this.directory
+	}
+    require('./js/download.js')(path, callback);
+  }
   running: false,
   start: function (callback) {
     self = this
@@ -129,8 +140,9 @@ var siad = {
   ifRunning: ifRunning
 }
 
-// Set default values
+// Add default and module properties
 addProps(defaults, siad)
+addProps(require('./js/siaMath.js'))
 
 // Export
 module.exports = siad

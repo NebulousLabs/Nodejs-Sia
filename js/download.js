@@ -10,7 +10,7 @@ var zlib = require('zlib') // for gunzip
 // Hard coded download details
 const config = {
   baseUrl: 'https://github.com/NebulousLabs/Sia/releases/download/',
-  siaVersion: 'v0.4.7-beta'
+  siaVersion: 'v0.4.8-beta'
 }
 
 // helper to quit process and output error
@@ -23,10 +23,15 @@ function handleError (error) {
 }
 
 // Function to download Sia release
-module.exports = function (outputPath) {
-  if (!outputPath) {
-    outputPath = path.join(__dirname, '..')
+module.exports = function (output, callback) {
+  // Get target directory and filepath
+  var outputDir, outputPath
+  if (!output) {
+    output = path.join(__dirname, 'Sia')
   }
+  var lastIndex = output.lastIndexOf("/")
+  outputPath = output.substring(0, lastIndex)
+  outputDir = output.substring(lastIndex);
 
   // Interpret filename from process environment variables
   var platform, arch, extension
@@ -42,8 +47,8 @@ module.exports = function (outputPath) {
     default:
       arch = process.arch
   }
-  var dirName = 'Sia-' + config.siaVersion + '-' + platform + '-' + arch
-  var fileName = dirName + extension
+  var extractedDirName = 'Sia-' + config.siaVersion + '-' + platform + '-' + arch
+  var fileName = extractedDirName + extension
   var fullUrl = config.baseUrl + config.siaVersion + '/' + fileName
 
   // Setup download stream
@@ -51,11 +56,11 @@ module.exports = function (outputPath) {
   requestStream.on('error', handleError)
 
   // Setup extract stream
-  var extractStream = extract.Extract({path: config.outputPath})
+  var extractStream = extract.Extract({path: outputPath})
   extractStream.on('error', handleError)
   extractStream.on('close', function () {
     if (process.platform !== 'win32') {
-      fs.chmod(config.outputPath, '755', handleError)
+      fs.chmod(outputPath, '755', handleError)
     }
   })
 
@@ -67,7 +72,9 @@ module.exports = function (outputPath) {
     download = requestStream.pipe(extractStream)
   }
   download.on('close', function () {
-    fs.rename(path.join(config.outputPath, dirName), path.join(config.outputPath, 'Sia'))
+    fs.rename(path.join(outputPath, extractedDirName),
+              path.join(outputPath, outputDir),
+              callback)
   })
 }
 
