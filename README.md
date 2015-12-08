@@ -1,6 +1,6 @@
 # Sia.js
 
-![Visit sia.tech for the bird's eye view of what Sia is](/doc/assets/files.png)
+![Visit sia.tech for the bird's eye view of what Sia is](https://raw.githubusercontent.com/NebulousLabs/Sia-UI/master/doc/assets/files.png)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 This is a [Nodejs](https://nodejs.org/) wrapper for
 [Sia](https://github.com/NebulousLabs/Sia). Use it in your apps to easily
