@@ -3,9 +3,9 @@
 // Libraries
 var fs = require('fs')
 var path = require('path')
+var zlib = require('zlib') // for gunzip
 var request = require('request')
 var extract = process.platform === 'linux' ? require('tar') : require('unzip')
-var zlib = require('zlib') // for gunzip
 
 // Hard coded download details
 const config = {
