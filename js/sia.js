@@ -149,11 +149,14 @@ function DaemonManager () {
     if (typeof path === 'string') {
       siad.path = path
     } else {
-      path = siad.path
       // the first argument is either undefined or the callback
       callback = path
+      path = siad.path
     }
     require('./download.js')(path, callback)
+
+    // Returns the path siad is downloaded to
+    return path
   }
 
   // Make certain members public

@@ -6,21 +6,20 @@
     "type": "git",
     "url": "git+https://github.com/NebulousLabs/Nodejs-Sia.git"
   },
-  "main": "index.js",
+  "main": "js/sia.js",
   "scripts": {
-    "install": "node js/download.js",
-    "clean": "rm -rf Sia node_modules",
-    "test": "npm run lint && mocha",
-    "lint": "standard --verbose | snazzy"
+    "lint": "standard --verbose | snazzy",
+    "kill": "killall siad; while pgrep siad; do sleep .5; done;",
+    "clean": "npm run kill && rm -rf Sia node_modules"
   },
   "keywords": [
     "Sia",
+    "Sia-UI",
     "Decentralized",
-    "Storage",
     "Cloud",
+    "Storage",
     "Altcoin",
-    "Cryptocurrency",
-    "Sia-UI"
+    "Cryptocurrency"
   ],
   "bugs": {
     "url": "https://github.com/NebulousLabs/Nodejs-Sia/issues"
@@ -28,8 +27,6 @@
   "author": "Ming Luo",
   "license": "MIT",
   "devDependencies": {
-    "chai": "^3.4.1",
-    "mocha": "^2.3.3",
     "snazzy": "^2.0.1",
     "standard": "^5.3.1"
   },
