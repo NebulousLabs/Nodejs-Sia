@@ -8,7 +8,7 @@
   },
   "main": "js/sia.js",
   "scripts": {
-    "lint": "standard --verbose | snazzy",
+    "test": "standard --verbose | snazzy",
     "kill": "killall siad; while pgrep siad; do sleep .5; done;",
     "clean": "npm run kill && rm -rf Sia node_modules"
   },
