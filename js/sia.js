@@ -171,11 +171,11 @@ function SiadWrapper () {
    * @param {callback} callback - returns if siad is running
    */
   function configure (settings, callback) {
-    siad.path = settings.siad.path || siad.path
-    siad.address = settings.siad.address || siad.address
-    siad.command = settings.siad.command || siad.command
-    if (typeof callback === 'function') {
-      callback(settings)
+    siad.path = settings.path || siad.path
+    siad.address = settings.address || siad.address
+    siad.command = settings.command || siad.command
+    if (callback !== undefined) {
+      callback(null, siad)
     }
   }
 
