@@ -32,7 +32,7 @@ function SiadWrapper () {
 
   /**
    * Relays calls to daemonAPI with the localhost:port address appended
-   * @function SiadWrapper#apiCall
+   * @function SiadWrapper#call
    * @param {apiCall} call - function to run if Siad is running
    * @param {apiResponse} callback
    */
@@ -46,18 +46,21 @@ function SiadWrapper () {
     call.url = siad.address + call.url
     call.json = true
     call.headers = siad.headers
+
+    // Return the request sent if the user wants to be creative and get more
+    // information than what's passed to the callback
     return new Request(call, function (error, response, body) {
       // The error from Request should be null if siad is running
       siad.running = !error
 
-      // If siad puts out an error, return it
+      // If siad puts out an error, pass it as first argument to callback
       if (!error && response.statusCode !== 200) {
         error = body
         body = null
       }
 
       // Return results to callback
-      if (typeof callback === 'function') {
+      if (callback !== undefined) {
         callback(error, body)
       }
     })
@@ -71,7 +74,7 @@ function SiadWrapper () {
       siad.running = !err
 
       // Return result to callback
-      if (typeof callback === 'function') {
+      if (callback !== undefined) {
         callback(siad.running)
       }
     })
@@ -79,15 +82,15 @@ function SiadWrapper () {
 
   /**
    * Checks whether siad is running and runs ones of two callbacks
-   * @function SiadWrapper#ifSiadRunning
+   * @function SiadWrapper#ifRunning
    * @param {callback} is - called if siad is running
    * @param {callback} not - called if siad is not running
    */
   function ifSiadRunning (is, not) {
     checkIfSiadRunning(function (running) {
-      if (running && typeof is === 'function') {
+      if (running && is !== undefined) {
         is()
-      } else if (typeof not === 'function') {
+      } else if (not !== undefined) {
         not()
       }
     })
@@ -98,8 +101,8 @@ function SiadWrapper () {
    * @function SiadWrapper#isRunning
    * @returns {boolean} whether siad is running
    */
-  function isSiadRunning () {
-    checkIfSiadRunning()
+  function isSiadRunning (callback) {
+    checkIfSiadRunning(callback)
     return siad.running
   }
 
@@ -117,8 +120,11 @@ function SiadWrapper () {
    * @param {callback} callback - function to be run if successful
    */
   function start (callback) {
+    // Check if siad is already running
     if (siad.running) {
-      callback(new Error('Attempted to start siad when it was already running'))
+      if (callback !== null) {
+        callback(new Error('Attempted to start siad when it was already running'))
+      }
       return
     }
 
@@ -126,7 +132,9 @@ function SiadWrapper () {
     try {
       require('fs').statSync(siad.path)
     } catch (e) {
-      callback(e)
+      if (callback !== null) {
+        callback(e)
+      }
       return
     }
 
@@ -138,6 +146,7 @@ function SiadWrapper () {
     var daemonProcess = new Process(siad.fileName, processOptions)
 
     // Listen for siad erroring
+    // TODO: Attach these to siad if it's already running
     daemonProcess.on('error', function (error) {
       self.emit('error', error)
     })
@@ -156,11 +165,11 @@ function SiadWrapper () {
    */
   function stop (callback) {
     apiCall('/daemon/stop', function (err) {
-      if (err) {
-        callback(err)
-      } else {
+      if (!err) {
         siad.running = false
-        callback(null)
+      }
+      if (callback !== undefined) {
+        callback(err)
       }
     })
   }
@@ -185,6 +194,7 @@ function SiadWrapper () {
    * Downloads siad and siac to a specified or default location
    * @param {string} path - An optional location of where to download to
    * @param {callback} callback
+   * @returns {boolean} if download was started, should always be true
    */
   function download (path, callback) {
     if (typeof path === 'string') {
@@ -194,10 +204,7 @@ function SiadWrapper () {
       callback = path
       path = siad.path
     }
-    require('./download.js')(path, callback)
-
-    // Returns the path siad is downloaded to
-    return path
+    return require('./download.js')(path, callback)
   }
 
   // Make certain members public

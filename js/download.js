@@ -73,5 +73,6 @@ module.exports = function (output, callback) {
               path.join(outputPath, outputDir),
               callback)
   })
+  return true
 }
 
