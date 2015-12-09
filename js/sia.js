@@ -9,11 +9,11 @@ const Util = require('util')
 const EventEmitter = require('events')
 
 /**
- * DaemonManager, a closure, initializes siad as a background process and
+ * SiadWrapper, a closure, initializes siad as a background process and
  * provides functions to interact with it
- * @class DaemonManager
+ * @class SiadWrapper
  */
-function DaemonManager () {
+function SiadWrapper () {
   // siad details with default values
   var siad = {
     path: Path.join(__dirname, 'Sia'),
@@ -33,7 +33,7 @@ function DaemonManager () {
 
   /**
    * Relays calls to daemonAPI with the localhost:port address appended
-   * @function DaemonManager#apiCall
+   * @function SiadWrapper#apiCall
    * @param {apiCall} call - function to run if Siad is running
    * @param {apiResponse} callback
    */
@@ -80,7 +80,7 @@ function DaemonManager () {
 
   /**
    * Checks whether siad is running and runs ones of two callbacks
-   * @function DaemonManager#ifSiadRunning
+   * @function SiadWrapper#ifSiadRunning
    * @param {callback} is - called if siad is running
    * @param {callback} not - called if siad is not running
    */
@@ -96,7 +96,7 @@ function DaemonManager () {
 
   /**
    * Synchronous way to check if siad is running, may not be up to date
-   * @function DaemonManager#isRunning
+   * @function SiadWrapper#isRunning
    * @returns {boolean} whether siad is running
    */
   function isSiadRunning () {
@@ -205,6 +205,6 @@ function DaemonManager () {
 }
 
 // Inherit functions from `EventEmitter`'s prototype
-Util.inherits(DaemonManager, EventEmitter)
+Util.inherits(SiadWrapper, EventEmitter)
 
-module.exports = new DaemonManager()
+module.exports = new SiadWrapper()
