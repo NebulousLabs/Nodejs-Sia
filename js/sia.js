@@ -3,8 +3,7 @@
 // Library for making requests
 const Request = require('request')
 
-// Necessary node libraries
-const Path = require('path')
+// Necessary node libraries to make sia.js emit events
 const Util = require('util')
 const EventEmitter = require('events')
 
@@ -16,7 +15,7 @@ const EventEmitter = require('events')
 function SiadWrapper () {
   // siad details with default values
   var siad = {
-    path: Path.join(__dirname, 'Sia'),
+    path: require('path').join(__dirname, 'Sia'),
     address: 'http://localhost:9980',
     command: process.platform === 'win32' ? 'siad.exe' : 'siad',
     headers: {
@@ -123,6 +122,14 @@ function SiadWrapper () {
       return
     }
 
+    // Check synchronously if siad doesn't exist at siad.path
+    try {
+      require('fs').statSync(siad.path)
+    } catch (e) {
+      callback(e)
+      return
+    }
+
     // Set siad folder as configured siadPath
     var processOptions = {
       cwd: siad.path
@@ -132,10 +139,6 @@ function SiadWrapper () {
 
     // Listen for siad erroring
     daemonProcess.on('error', function (error) {
-      // Clarify that ENOENT errors means siad wasn't at its supposed path
-      if (error.message === 'spawn ' + siad.command + ' ENOENT') {
-        error.message = 'siad not found at ' + siad.path
-      }
       self.emit('error', error)
     })
     daemonProcess.on('exit', function (code) {
@@ -153,11 +156,12 @@ function SiadWrapper () {
    */
   function stop (callback) {
     apiCall('/daemon/stop', function (err) {
-      if (err)
+      if (err) {
         callback(err)
-      else 
+      } else {
         siad.running = false
         callback(null)
+      }
     })
   }
 
