@@ -43,9 +43,16 @@ Should log something like:
 null '0.4.8'
 ```
 
+The call object passed as the first argument into call() are funneled directly
+into the [`request`](https://github.com/request/request) library, so checkout
+[their options](https://github.com/request/request#requestoptions-callback) to
+see how to access the full functionality of [Sia's
+API](https://github.com/NebulousLabs/Sia/blob/master/doc/API.md)
+
 ```js
 Siad.call({
   url: '/consensus/block',
+  method: 'GET',
   qs: {
     height: 0
   }
@@ -64,7 +71,3 @@ null { block:
    minerpayouts: null,
    transactions: [ [Object] ] } }
 ```
-
-## License
-
-[MIT](LICENSE)
