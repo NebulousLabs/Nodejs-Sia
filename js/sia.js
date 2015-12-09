@@ -172,7 +172,7 @@ function DaemonManager () {
     siad.address = settings.siad.address || siad.address
     siad.command = settings.siad.command || siad.command
     if (typeof callback === 'function') {
-      callback()
+      callback(settings)
     }
   }
 
