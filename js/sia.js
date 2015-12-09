@@ -35,6 +35,7 @@ function SiadWrapper () {
    * @function SiadWrapper#call
    * @param {apiCall} call - function to run if Siad is running
    * @param {apiResponse} callback
+   * @returns {object} request call object
    */
   function apiCall (call, callback) {
     // Interpret string-only calls. Will default to 'GET' requests
@@ -68,7 +69,7 @@ function SiadWrapper () {
 
   // Checks whether siad is running on the current address
   function checkIfSiadRunning (callback) {
-    apiCall('/daemon/version', function (err) {
+    return apiCall('/daemon/version', function (err) {
       // There should be no reason this call would error if siad were running
       // and serving requests
       siad.running = !err
@@ -85,9 +86,10 @@ function SiadWrapper () {
    * @function SiadWrapper#ifRunning
    * @param {callback} is - called if siad is running
    * @param {callback} not - called if siad is not running
+   * @returns {object} request call object
    */
   function ifSiadRunning (is, not) {
-    checkIfSiadRunning(function (running) {
+    return checkIfSiadRunning(function (running) {
       if (running && is !== undefined) {
         is()
       } else if (not !== undefined) {
@@ -102,13 +104,12 @@ function SiadWrapper () {
    * @returns {boolean} whether siad is running
    */
   function isSiadRunning (callback) {
-    checkIfSiadRunning(callback)
     return siad.running
   }
 
   // Polls the siad API until it comes online
   function waitUntilLoaded (callback) {
-    ifSiadRunning(callback, function () {
+    return ifSiadRunning(callback, function () {
       setTimeout(function () {
         waitUntilLoaded(callback)
       }, 1000)
@@ -118,6 +119,7 @@ function SiadWrapper () {
   /**
    * Starts the daemon as a long running background process
    * @param {callback} callback - function to be run if successful
+   * @returns {boolean} if start was attempted
    */
   function start (callback) {
     // Check if siad is already running
@@ -125,7 +127,7 @@ function SiadWrapper () {
       if (callback !== null) {
         callback(new Error('Attempted to start siad when it was already running'))
       }
-      return
+      return false
     }
 
     // Check synchronously if siad doesn't exist at siad.path
@@ -135,7 +137,7 @@ function SiadWrapper () {
       if (callback !== null) {
         callback(e)
       }
-      return
+      return false
     }
 
     // Set siad folder as configured siadPath
@@ -157,11 +159,15 @@ function SiadWrapper () {
 
     // Wait until siad finishes loading to call callback
     waitUntilLoaded(callback)
+
+    // return that we attempted to start siad
+    return true
   }
 
   /**
    * Sends a stop call to the daemon
    * @param {callback} callback - function to be run if successful
+   * @returns {boolean} if stop was attempted, should always be true
    */
   function stop (callback) {
     apiCall('/daemon/stop', function (err) {
@@ -172,12 +178,17 @@ function SiadWrapper () {
         callback(err)
       }
     })
+
+    // return that we attempted to stop siad
+    return true
   }
 
   /**
    * Sets the member variables based on the passed config
    * @param {config} c - the config object derived from config.json
-   * @param {callback} callback - returns if siad is running
+   * @param {callback} callback - first argument is any errors, second argument
+   * is the new configuration
+   * @returns {object} siad configuration object
    */
   function configure (settings, callback) {
     for (var key in settings) {
@@ -188,6 +199,7 @@ function SiadWrapper () {
     if (callback !== undefined) {
       callback(null, siad)
     }
+    return siad
   }
 
   /**
