@@ -65,10 +65,10 @@ function DaemonManager () {
   }
 
   // Checks whether siad is running on the current address
-  function checkRunning (callback) {
+  function checkIfSiadRunning (callback) {
     apiCall('/daemon/version', function (err) {
       // There should be no reason this call would error if siad were running
-        // and serving requests
+      // and serving requests
       siad.running = !err
 
       // Return result to callback
@@ -85,7 +85,7 @@ function DaemonManager () {
    * @param {callback} not - called if siad is not running
    */
   function ifSiadRunning (is, not) {
-    checkRunning(function (running) {
+    checkIfSiadRunning(function (running) {
       if (running && typeof is === 'function') {
         is()
       } else if (typeof not === 'function') {
@@ -100,7 +100,7 @@ function DaemonManager () {
    * @returns {boolean} whether siad is running
    */
   function isSiadRunning () {
-    checkRunning()
+    checkIfSiadRunning()
     return siad.running
   }
 
@@ -131,11 +131,10 @@ function DaemonManager () {
     var daemonProcess = new Process(siad.command, processOptions)
 
     // Listen for siad erroring
-    // TODO: How to change this error to give more accurate hint. Does
-    // this work?
     daemonProcess.on('error', function (error) {
-      if (error === 'Error: spawn ' + siad.command + ' ENOENT') {
-        error.message = 'Missing siad!'
+      // Clarify that ENOENT errors means siad wasn't at its supposed path
+      if (error.message === 'spawn ' + siad.command + ' ENOENT') {
+        error.message = 'siad not found at ' + siad.path
       }
       self.emit('error', error)
     })
