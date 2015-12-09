@@ -25,7 +25,8 @@ function DaemonManager () {
     // Track if Daemon is running
     running: false
   }
-  // Keep reference to `this`
+  // Keep reference to `this` to emit events from within contexts where `this`
+  // does not point to this class
   var self = this
   // Inherit `EventEmitter` properties
   EventEmitter.call(this)
@@ -37,24 +38,26 @@ function DaemonManager () {
    * @param {apiResponse} callback
    */
   function apiCall (call, callback) {
-    // Things to prevent unimportant errors
+    // Interpret string-only calls. Will default to 'GET' requests
     if (typeof call === 'string') {
       call = { url: call }
     }
-    callback = callback || function () {}
 
     // Setup request
     call.url = siad.address + call.url
     call.json = true
     call.headers = siad.headers
     return new Request(call, function (error, response, body) {
-      // The error from the call itself should be null
+      // The error from Request should be null if siad is running
       siad.running = !error
+
+      // If siad puts out an error, return it
       if (!error && response.statusCode !== 200) {
-        // If siad puts out an error, return it
         error = body
         body = null
       }
+
+      // Return results to callback
       if (typeof callback === 'function') {
         callback(error, body)
       }
@@ -64,8 +67,11 @@ function DaemonManager () {
   // Checks whether siad is running on the current address
   function checkRunning (callback) {
     apiCall('/daemon/version', function (err) {
-      // There's no reason this call would error if siad is running
+      // There should be no reason this call would error if siad were running
+        // and serving requests
       siad.running = !err
+
+      // Return result to callback
       if (typeof callback === 'function') {
         callback(siad.running)
       }
@@ -74,11 +80,11 @@ function DaemonManager () {
 
   /**
    * Checks whether siad is running and runs ones of two callbacks
-   * @function DaemonManager#ifRunning
+   * @function DaemonManager#ifSiadRunning
    * @param {callback} is - called if siad is running
    * @param {callback} not - called if siad is not running
    */
-  function ifRunning (is, not) {
+  function ifSiadRunning (is, not) {
     checkRunning(function (running) {
       if (running && typeof is === 'function') {
         is()
@@ -93,14 +99,14 @@ function DaemonManager () {
    * @function DaemonManager#isRunning
    * @returns {boolean} whether siad is running
    */
-  function isRunning () {
+  function isSiadRunning () {
     checkRunning()
     return siad.running
   }
 
   // Polls the siad API until it comes online
   function waitUntilLoaded (callback) {
-    ifRunning(callback, function () {
+    ifSiadRunning(callback, function () {
       setTimeout(function () {
         waitUntilLoaded(callback)
       }, 1000)
@@ -148,7 +154,11 @@ function DaemonManager () {
    */
   function stop (callback) {
     apiCall('/daemon/stop', function (err) {
-      siad.running = !err
+      if (err)
+        callback(err)
+      else 
+        siad.running = false
+        callback(null)
     })
   }
 
@@ -187,8 +197,8 @@ function DaemonManager () {
 
   // Make certain members public
   this.call = apiCall
-  this.ifRunning = ifRunning
-  this.isRunning = isRunning
+  this.ifRunning = ifSiadRunning
+  this.isRunning = isSiadRunning
   this.start = start
   this.stop = stop
   this.configure = configure
