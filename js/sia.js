@@ -171,9 +171,11 @@ function SiadWrapper () {
    * @param {callback} callback - returns if siad is running
    */
   function configure (settings, callback) {
-    siad.path = settings.path || siad.path
-    siad.address = settings.address || siad.address
-    siad.command = settings.command || siad.command
+    for (var key in settings) {
+      if (siad.hasOwnProperty(key)) {
+        siad[key] = settings[key] || siad[key]
+      }
+    }
     if (callback !== undefined) {
       callback(null, siad)
     }
