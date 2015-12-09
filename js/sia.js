@@ -50,19 +50,19 @@ function SiadWrapper () {
 
     // Return the request sent if the user wants to be creative and get more
     // information than what's passed to the callback
-    return new Request(call, function (error, response, body) {
+    return new Request(call, function (err, response, body) {
       // The error from Request should be null if siad is running
-      siad.running = !error
+      siad.running = !err
 
       // If siad puts out an error, pass it as first argument to callback
-      if (!error && response.statusCode !== 200) {
-        error = body
+      if (!err && response.statusCode !== 200) {
+        err = body
         body = null
       }
 
       // Return results to callback
       if (callback !== undefined) {
-        callback(error, body)
+        callback(err, body)
       }
     })
   }
@@ -149,8 +149,8 @@ function SiadWrapper () {
 
     // Listen for siad erroring
     // TODO: Attach these to siad if it's already running
-    daemonProcess.on('error', function (error) {
-      self.emit('error', error)
+    daemonProcess.on('error', function (err) {
+      self.emit('error', err)
     })
     daemonProcess.on('exit', function (code) {
       siad.running = false
