@@ -17,18 +17,52 @@ requests.
 
 - [node & npm](https://nodejs.org/download/)
 
-## Installing
+## Installation
 
-We'll publish this soon to make installation as easy as
+Run the following to save sia.js in your project's `node_modules` folder
 
 ```bash
-npm install sia.js
+npm install -S sia.js
 ```
 
-and used in code via
+## Usage
 
 ```js
-var Sia = require('sia.js');
+var Siad = require('sia.js')
+```
+
+```js
+Siad.call('/daemon/version', function(err, result) {
+  console.log(err, result)
+})
+```
+
+Should log something like:
+
+```bash
+null '0.4.8'
+```
+
+```js
+Siad.call({
+  url: '/consensus/block',
+  qs: {
+    height: 0
+  }
+}, function(err,result) {
+  console.log(err,result)
+});
+```
+
+Should log something like:
+
+```bash
+null { block:
+ { parentid: '0000000000000000000000000000000000000000000000000000000000000000',
+   nonce: [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+   timestamp: 1433600000,
+   minerpayouts: null,
+   transactions: [ [Object] ] } }
 ```
 
 ## License
