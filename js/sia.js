@@ -159,8 +159,6 @@ function SiadWrapper () {
 
     // Wait until siad finishes loading to call callback
     waitUntilLoaded(callback)
-
-    // return that we attempted to start siad
     return true
   }
 
@@ -178,13 +176,13 @@ function SiadWrapper () {
         callback(err)
       }
     })
-
-    // return that we attempted to stop siad
     return true
   }
 
   /**
-   * Sets the member variables based on the passed config
+   * Sets the member variables based on the passed config. Checks if siad is
+   * running on the new configuration so siad.running should be up to date for
+   * the callback
    * @param {config} c - the config object derived from config.json
    * @param {callback} callback - first argument is any errors, second argument
    * is the new configuration
@@ -196,9 +194,11 @@ function SiadWrapper () {
         siad[key] = settings[key] || siad[key]
       }
     }
-    if (callback !== undefined) {
-      callback(null, siad)
-    }
+    checkIfSiadRunning(function () {
+      if (callback !== undefined) {
+        callback(null, siad)
+      }
+    })
     return siad
   }
 
