@@ -17,7 +17,7 @@ function SiadWrapper () {
   var siad = {
     path: require('path').join(__dirname, '..', 'Sia'),
     address: 'http://localhost:9980',
-    command: process.platform === 'win32' ? 'siad.exe' : 'siad',
+    fileName: process.platform === 'win32' ? 'siad.exe' : 'siad',
     headers: {
       'User-Agent': 'Sia-Agent'
     },
@@ -135,7 +135,7 @@ function SiadWrapper () {
       cwd: siad.path
     }
     const Process = require('child_process').spawn
-    var daemonProcess = new Process(siad.command, processOptions)
+    var daemonProcess = new Process(siad.fileName, processOptions)
 
     // Listen for siad erroring
     daemonProcess.on('error', function (error) {
