@@ -13,7 +13,7 @@ const config = {
   siaVersion: 'v0.4.8-beta'
 }
 
-// helper to quit process and output error
+// Helper to quit process and output error
 function handleError (error) {
   if (!error) return
 
@@ -26,9 +26,6 @@ function handleError (error) {
 module.exports = function (output, callback) {
   // Get target directory and filepath
   var outputDir, outputPath
-  if (!output) {
-    output = path.join(__dirname, 'Sia')
-  }
   var lastIndex = output.lastIndexOf('/')
   outputPath = output.substring(0, lastIndex)
   outputDir = output.substring(lastIndex)
