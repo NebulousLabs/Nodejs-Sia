@@ -190,11 +190,17 @@ function SiadWrapper () {
    */
   function configure (settings, callback) {
     for (var key in settings) {
+      // Set passed in settings within siad
+      if (settings.hasOwnProperty(key)) {
+        siad[key] = settings[key]
+      }
+      // Modify passed in settings to be in sync with siad
       if (siad.hasOwnProperty(key)) {
-        siad[key] = settings[key] || siad[key]
+        settings[key] = siad[key]
       }
     }
-    checkIfSiadRunning(function () {
+    checkIfSiadRunning(function (check) {
+      settings.running = check
       if (callback !== undefined) {
         callback(null, siad)
       }
