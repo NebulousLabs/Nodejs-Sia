@@ -15,7 +15,7 @@ const EventEmitter = require('events')
 function SiadWrapper () {
   // siad details with default values
   var siad = {
-    path: require('path').join(__dirname, 'Sia'),
+    path: require('path').join(__dirname, '..', 'Sia'),
     address: 'http://localhost:9980',
     command: process.platform === 'win32' ? 'siad.exe' : 'siad',
     headers: {
