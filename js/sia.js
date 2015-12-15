@@ -194,13 +194,8 @@ function SiadWrapper () {
       if (siad.hasOwnProperty(key)) {
         siad[key] = settings[key]
       }
-      // Modify passed in settings to be in sync with siad
-      if (settings.hasOwnProperty(key)) {
-        settings[key] = siad[key]
-      }
     }
     checkIfSiadRunning(function (check) {
-      settings.running = check
       if (callback !== undefined) {
         callback(null, siad)
       }
