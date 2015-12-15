@@ -68,6 +68,9 @@ module.exports = function (output, callback) {
   } else {
     download = requestStream.pipe(extractStream)
   }
+
+  // On finish download, execute callback or handle an error if one came up
+  callback = callback || handleError
   download.on('close', function () {
     fs.rename(path.join(outputPath, extractedDirName),
               path.join(outputPath, outputDir),
