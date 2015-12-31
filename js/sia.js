@@ -164,10 +164,13 @@ function SiadWrapper () {
     if (siad.detached) {
       daemonProcess.unref()
     } else {
-      // Listen for siad erroring
+      // Listen for siad events and emit them from wrapper
       // TODO: Attach these to siad if it's already running
-      daemonProcess.on('error', function (err) {
-        self.emit('error', err)
+      var childProcessEvents = ['close', 'disconnect', 'error', 'message']
+      childProcessEvents.forEach(function (ev) {
+        daemonProcess.on(ev, function (arg1, arg2) {
+          self.emit(ev, arg1, arg2)
+        })
       })
       daemonProcess.on('exit', function (code) {
         siad.running = false
