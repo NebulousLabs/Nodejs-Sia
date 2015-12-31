@@ -21,7 +21,7 @@ function SiadWrapper () {
     headers: {
       'User-Agent': 'Sia-Agent'
     },
-    // Track if Daemon is running
+    detached: false,
     running: false
   }
   // Keep reference to `this` to emit events from within contexts where `this`
@@ -131,6 +131,7 @@ function SiadWrapper () {
     }
 
     // Check synchronously if siad doesn't exist at siad.path
+    const fs = require('fs')
     try {
       require('fs').statSync(siad.path)
     } catch (e) {
@@ -140,22 +141,39 @@ function SiadWrapper () {
       return false
     }
 
-    // Set siad folder as configured siadPath
+    // Set siad folder as configured siad.path
     var processOptions = {
       cwd: siad.path
     }
+
+    // If the detached option is set, spawn siad as a separate process to be
+    // run in the background after the parent process has closed
+    if (siad.detached) {
+      let log = require('path').join(siad.path, 'out.log')
+      let out = fs.openSync(log, 'a')
+      let err = fs.openSync(log, 'a')
+      processOptions.detached = true
+      processOptions.stdio = [ 'ignore', out, err ]
+    }
+
+    // Spawn siad
     const Process = require('child_process').spawn
     var daemonProcess = new Process(siad.fileName, processOptions)
 
-    // Listen for siad erroring
-    // TODO: Attach these to siad if it's already running
-    daemonProcess.on('error', function (err) {
-      self.emit('error', err)
-    })
-    daemonProcess.on('exit', function (code) {
-      siad.running = false
-      self.emit('exit', code)
-    })
+    // Exclude it from the parent process' event loop if detached
+    if (siad.detached) {
+      daemonProcess.unref()
+    } else {
+      // Listen for siad erroring
+      // TODO: Attach these to siad if it's already running
+      daemonProcess.on('error', function (err) {
+        self.emit('error', err)
+      })
+      daemonProcess.on('exit', function (code) {
+        siad.running = false
+        self.emit('exit', code)
+      })
+    }
 
     // Wait until siad finishes loading to call callback
     waitUntilLoaded(callback)
@@ -189,7 +207,7 @@ function SiadWrapper () {
    * @returns {object} siad configuration object
    */
   function configure (settings, callback) {
-    for (var key in settings) {
+    for (let key in settings) {
       // Set passed in settings within siad
       if (siad.hasOwnProperty(key)) {
         siad[key] = settings[key]
