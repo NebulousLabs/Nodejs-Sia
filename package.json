@@ -1,6 +1,6 @@
 {
   "name": "sia.js",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Node wrapper for siad of the Sia network",
   "repository": {
     "type": "git",
