@@ -14,16 +14,17 @@ const EventEmitter = require('events')
  */
 function SiadWrapper () {
   // siad details with default values
-  var siad = {
+  var settings = {
     fileName: process.platform === 'win32' ? 'siad.exe' : 'siad',
     detached: false,
-    running: false,
     agent: 'Sia-Agent',
     address: 'localhost:9980',
     rpcAddress: ':9981',
     hostAddress: ':9982',
     path: require('path').join(__dirname, '..', 'Sia')
   }
+  // Tracks if siad was last known to be running or not
+  var running = false
   // Keep reference to `this` to emit events from within contexts where `this`
   // does not point to this class
   var self = this
@@ -44,17 +45,17 @@ function SiadWrapper () {
     }
 
     // Setup request
-    call.url = 'http://' + siad.address + call.url
+    call.url = 'http://' + settings.address + call.url
     call.json = true
     call.headers = {
-      'User-Agent': siad.agent
+      'User-Agent': settings.agent
     }
 
     // Return the request sent if the user wants to be creative and get more
     // information than what's passed to the callback
     return new Request(call, function (err, response, body) {
       // The error from Request should be null if siad is running
-      siad.running = !err
+      running = !err
 
       // If siad puts out an error, pass it as first argument to callback
       if (!err && response.statusCode !== 200) {
@@ -74,11 +75,11 @@ function SiadWrapper () {
     return apiCall('/daemon/version', function (err) {
       // There should be no reason this call would error if siad were running
       // and serving requests
-      siad.running = !err
+      running = !err
 
       // Return result to callback
       if (callback !== undefined) {
-        callback(siad.running)
+        callback(running)
       }
     })
   }
@@ -106,7 +107,7 @@ function SiadWrapper () {
    * @returns {boolean} whether siad is running
    */
   function isSiadRunning (callback) {
-    return siad.running
+    return running
   }
 
   // Polls the siad API until it comes online
@@ -125,17 +126,17 @@ function SiadWrapper () {
    */
   function start (callback) {
     // Check if siad is already running
-    if (siad.running) {
+    if (running) {
       if (callback !== null) {
         callback(new Error('Attempted to start siad when it was already running'))
       }
       return false
     }
 
-    // Check synchronously if siad doesn't exist at siad.path
+    // Check synchronously if siad doesn't exist at settings.path
     const fs = require('fs')
     try {
-      require('fs').statSync(siad.path)
+      require('fs').statSync(settings.path)
     } catch (e) {
       if (callback !== null) {
         callback(e)
@@ -143,15 +144,15 @@ function SiadWrapper () {
       return false
     }
 
-    // Set siad folder as configured siad.path
+    // Set siad folder as configured settings.path
     var processOptions = {
-      cwd: siad.path
+      cwd: settings.path
     }
 
     // If the detached option is set, spawn siad as a separate process to be
     // run in the background after the parent process has closed
-    if (siad.detached) {
-      let log = require('path').join(siad.path, 'out.log')
+    if (settings.detached) {
+      let log = require('path').join(settings.path, 'out.log')
       let out = fs.openSync(log, 'a')
       let err = fs.openSync(log, 'a')
       processOptions.detached = true
@@ -160,16 +161,16 @@ function SiadWrapper () {
 
     // Spawn siad
     const Process = require('child_process').spawn
-    var daemonProcess = new Process(siad.fileName, [
-      '--agent=' + siad.agent,
-      '--api-addr=' + siad.address,
-      '--rpc-addr=' + siad.rpcAddress,
-      '--host-addr=' + siad.hostAddress,
-      '--sia-directory=' + siad.path
+    var daemonProcess = new Process(settings.fileName, [
+      '--agent=' + settings.agent,
+      '--api-addr=' + settings.address,
+      '--rpc-addr=' + settings.rpcAddress,
+      '--host-addr=' + settings.hostAddress,
+      '--sia-directory=' + settings.path
     ], processOptions)
 
     // Exclude it from the parent process' event loop if detached
-    if (siad.detached) {
+    if (settings.detached) {
       daemonProcess.unref()
     } else {
       // Listen for siad events and emit them from wrapper
@@ -181,7 +182,7 @@ function SiadWrapper () {
         })
       })
       daemonProcess.on('exit', function (code) {
-        siad.running = false
+        running = false
         self.emit('exit', code)
       })
     }
@@ -199,7 +200,7 @@ function SiadWrapper () {
   function stop (callback) {
     apiCall('/daemon/stop', function (err) {
       if (!err) {
-        siad.running = false
+        running = false
       }
       if (callback !== undefined) {
         callback(err)
@@ -210,29 +211,29 @@ function SiadWrapper () {
 
   /**
    * Sets the member variables based on the passed config. Checks if siad is
-   * running on the new configuration so siad.running should be up to date for
+   * running on the new configuration so running should be up to date for
    * the callback
    * @param {config} c - the config object derived from config.json
    * @param {callback} callback - first argument is any errors, second argument
    * is the new configuration
    * @returns {object} siad configuration object
    */
-  function configure (settings, callback) {
-    for (let key in siad) {
+  function configure (newSettings, callback) {
+    for (let key in settings) {
       // Set passed in settings within siad
-      if (siad.hasOwnProperty(key) && settings.hasOwnProperty(key)) {
-        siad[key] = settings[key]
-      } else if (siad.hasOwnProperty(key)) {
+      if (settings.hasOwnProperty(key) && settings.hasOwnProperty(key)) {
+        settings[key] = newSettings[key]
+      } else if (settings.hasOwnProperty(key)) {
         // Set settings to sync with siad
-        settings[key] = siad[key]
+        newSettings[key] = settings[key]
       }
     }
     checkIfSiadRunning(function (check) {
       if (callback !== undefined) {
-        callback(null, siad)
+        callback(null, settings)
       }
     })
-    return siad
+    return settings
   }
 
   /**
@@ -243,11 +244,11 @@ function SiadWrapper () {
    */
   function download (path, callback) {
     if (typeof path === 'string') {
-      siad.path = path
+      settings.path = path
     } else {
       // the first argument is either undefined or the callback
       callback = path
-      path = siad.path
+      path = settings.path
     }
     return require('./download.js')(path, callback)
   }
