@@ -40,7 +40,8 @@ Siad.call('/daemon/version', function(err, result) {
 Should log something like:
 
 ```bash
-null '0.4.8'
+null { version:
+  '0.4.8' }
 ```
 
 The call object passed as the first argument into call() are funneled directly
@@ -53,7 +54,7 @@ API](https://github.com/NebulousLabs/Sia/blob/master/doc/API.md)
 Siad.call({
   url: '/consensus/block',
   method: 'GET',
-  qs: {
+  form: {
     height: 0
   }
 }, function(err,result) {
