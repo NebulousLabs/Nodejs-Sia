@@ -40,7 +40,8 @@ Siad.call('/daemon/version', function(err, result) {
 Should log something like:
 
 ```bash
-null '0.4.8'
+null { version:
+  '0.4.8' }
 ```
 
 The call object passed as the first argument into call() are funneled directly
