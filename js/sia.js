@@ -15,14 +15,14 @@ const EventEmitter = require('events')
 function SiadWrapper () {
   // siad details with default values
   var siad = {
-    path: require('path').join(__dirname, '..', 'Sia'),
-    address: 'http://localhost:9980',
     fileName: process.platform === 'win32' ? 'siad.exe' : 'siad',
-    headers: {
-      'User-Agent': 'Sia-Agent'
-    },
     detached: false,
-    running: false
+    running: false,
+    agent: 'Sia-Agent',
+    address: 'localhost:9980',
+    rpcAddress: ':9981',
+    hostAddress: ':9982',
+    path: require('path').join(__dirname, '..', 'Sia')
   }
   // Keep reference to `this` to emit events from within contexts where `this`
   // does not point to this class
@@ -44,9 +44,11 @@ function SiadWrapper () {
     }
 
     // Setup request
-    call.url = siad.address + call.url
+    call.url = 'http://' + siad.address + call.url
     call.json = true
-    call.headers = siad.headers
+    call.headers = {
+      'User-Agent': siad.agent
+    }
 
     // Return the request sent if the user wants to be creative and get more
     // information than what's passed to the callback
@@ -158,7 +160,13 @@ function SiadWrapper () {
 
     // Spawn siad
     const Process = require('child_process').spawn
-    var daemonProcess = new Process(siad.fileName, processOptions)
+    var daemonProcess = new Process(siad.fileName, [
+      '--agent=' + siad.agent,
+      '--api-addr=' + siad.address,
+      '--rpc-addr=' + siad.rpcAddress,
+      '--host-addr=' + siad.hostAddress,
+      '--sia-directory=' + siad.path
+    ], processOptions)
 
     // Exclude it from the parent process' event loop if detached
     if (siad.detached) {
