@@ -218,10 +218,13 @@ function SiadWrapper () {
    * @returns {object} siad configuration object
    */
   function configure (settings, callback) {
-    for (let key in settings) {
+    for (let key in siad) {
       // Set passed in settings within siad
-      if (siad.hasOwnProperty(key)) {
+      if (siad.hasOwnProperty(key) && settings.hasOwnProperty(key)) {
         siad[key] = settings[key]
+      } else if (siad.hasOwnProperty(key)) {
+        // Set settings to sync with siad
+        settings[key] = siad[key]
       }
     }
     checkIfSiadRunning(function (check) {
