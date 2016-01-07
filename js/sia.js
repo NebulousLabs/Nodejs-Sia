@@ -242,7 +242,19 @@ function SiadWrapper () {
   }
 
   // Make certain members public
-  this.call = apiCall
+  this.call = function () {
+    var args = []
+    for (let i = 0; i < arguments.length; ++i) {
+      args[i] = arguments[i]
+    }
+    // TODO: Don't understand why the setImmediate is needed, but without it,
+    // some calls seems to not return right after another call but eventually
+    // do return once another call is made. Some sort of resource blocking is
+    // happnening
+    setImmediate(function () {
+      apiCall.apply(this, args)
+    })
+  }
   this.ifRunning = ifSiadRunning
   this.isRunning = isSiadRunning
   this.start = start
