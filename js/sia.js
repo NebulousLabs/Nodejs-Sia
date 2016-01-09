@@ -221,7 +221,7 @@ function SiadWrapper () {
   function configure (newSettings, callback) {
     for (let key in settings) {
       // Set passed in settings within siad
-      if (settings.hasOwnProperty(key) && settings.hasOwnProperty(key)) {
+      if (settings.hasOwnProperty(key) && newSettings.hasOwnProperty(key)) {
         settings[key] = newSettings[key]
       } else if (settings.hasOwnProperty(key)) {
         // Set settings to sync with siad
