@@ -6,6 +6,7 @@ const Request = require('request')
 // Necessary node libraries to make sia.js emit events
 const Util = require('util')
 const EventEmitter = require('events')
+const nodePath = require('path')
 
 /**
  * SiadWrapper, a closure, initializes siad as a background process and
@@ -21,7 +22,7 @@ function SiadWrapper () {
     address: 'localhost:9980',
     rpcAddress: ':9981',
     hostAddress: ':9982',
-    path: require('path').join(__dirname, '..', 'Sia')
+    path: nodePath.join(__dirname, '..', 'Sia')
   }
   // Tracks if siad was last known to be running or not
   var running = false
@@ -152,7 +153,7 @@ function SiadWrapper () {
     // If the detached option is set, spawn siad as a separate process to be
     // run in the background after the parent process has closed
     if (settings.detached) {
-      let log = require('path').join(settings.path, 'out.log')
+      let log = nodePath.join(settings.path, 'out.log')
       let out = fs.openSync(log, 'a')
       let err = fs.openSync(log, 'a')
       processOptions.detached = true
@@ -161,7 +162,7 @@ function SiadWrapper () {
 
     // Spawn siad
     const Process = require('child_process').spawn
-    var daemonProcess = new Process(settings.fileName, [
+    var daemonProcess = new Process(nodePath.join(settings.path, settings.fileName), [
       '--agent=' + settings.agent,
       '--api-addr=' + settings.address,
       '--rpc-addr=' + settings.rpcAddress,
