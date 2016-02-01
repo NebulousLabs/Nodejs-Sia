@@ -229,11 +229,11 @@ function SiadWrapper () {
         newSettings[key] = settings[key]
       }
     }
-    checkIfSiadRunning(function (check) {
-      if (callback !== undefined) {
+    if (callback !== undefined) {
+      checkIfSiadRunning(function (check) {
         callback(null, settings)
-      }
-    })
+      })
+    }
     return settings
   }
 
