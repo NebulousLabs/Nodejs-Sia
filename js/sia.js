@@ -1,7 +1,7 @@
 'use strict'
 
 // Library for making requests
-const Request = require('request')
+const request = require('request')
 
 // Necessary node libraries to make sia.js emit events
 const Util = require('util')
@@ -54,20 +54,26 @@ function SiadWrapper () {
 
     // Return the request sent if the user wants to be creative and get more
     // information than what's passed to the callback
-    return new Request(call, function (err, response, body) {
-      // The error from Request should be null if siad is running
-      running = !err
+    // TODO: Don't understand why the setImmediate is needed, but without it,
+    // some calls seem to not return right after another call but eventually do
+    // return once another call is made. Some sort of resource blocking is
+    // happening
+    setImmediate(function () {
+      request(call, function (err, response, body) {
+        // The error from request should be null if siad is running
+        running = !err
 
-      // If siad puts out an error, pass it as first argument to callback
-      if (!err && response.statusCode !== 200) {
-        err = body
-        body = null
-      }
+        // If siad puts out an error, pass it as first argument to callback
+        if (!err && response.statusCode !== 200) {
+          err = body
+          body = null
+        }
 
-      // Return results to callback
-      if (callback !== undefined) {
-        callback(err, body)
-      }
+        // Return results to callback
+        if (callback !== undefined) {
+          callback(err, body)
+        }
+      })
     })
   }
 
