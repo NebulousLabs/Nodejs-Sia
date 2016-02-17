@@ -18,7 +18,6 @@ function SiadWrapper () {
   var settings = {
     fileName: process.platform === 'win32' ? 'siad.exe' : 'siad',
     detached: false,
-    agent: 'Sia-Agent',
     address: 'localhost:9980',
     rpcAddress: ':9981',
     hostAddress: ':9982',
@@ -49,7 +48,7 @@ function SiadWrapper () {
     call.url = 'http://' + settings.address + call.url
     call.json = true
     call.headers = {
-      'User-Agent': settings.agent
+      'User-Agent': 'Sia-Agent'
     }
 
     // Return the request sent if the user wants to be creative and get more
@@ -169,7 +168,6 @@ function SiadWrapper () {
     // Spawn siad
     const Process = require('child_process').spawn
     var daemonProcess = new Process(nodePath.join(settings.path, settings.fileName), [
-      '--agent=' + settings.agent,
       '--api-addr=' + settings.address,
       '--rpc-addr=' + settings.rpcAddress,
       '--host-addr=' + settings.hostAddress,
