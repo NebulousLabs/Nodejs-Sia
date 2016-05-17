@@ -20,8 +20,8 @@ function SiadWrapper () {
     address: 'localhost:9980',
     rpcAddress: ':9981',
     hostAddress: ':9982',
-    datadir: nodePath.join(__dirname, '..', 'Sia'),
-    path: nodePath.join(datadir, process.platform === 'win32' ? 'siad.exe' : 'siad')
+    datadir: nodePath.join(__dirname, '../Sia'),
+    path: nodePath.join(__dirname, '../Sia/', process.platform === 'win32' ? 'siad.exe' : 'siad')
   }
   // Tracks if siad was last known to be running or not
   var running = false
@@ -167,7 +167,7 @@ function SiadWrapper () {
 
     // Spawn siad
     const Process = require('child_process').spawn
-    var daemonProcess = new Process(settings.path), [
+    var daemonProcess = new Process(settings.path, [
       '--api-addr=' + settings.address,
       '--rpc-addr=' + settings.rpcAddress,
       '--host-addr=' + settings.hostAddress,
