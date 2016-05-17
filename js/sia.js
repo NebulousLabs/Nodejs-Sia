@@ -16,12 +16,12 @@ const nodePath = require('path')
 function SiadWrapper () {
   // siad details with default values
   var settings = {
-    fileName: process.platform === 'win32' ? 'siad.exe' : 'siad',
     detached: false,
     address: 'localhost:9980',
     rpcAddress: ':9981',
     hostAddress: ':9982',
-    path: nodePath.join(__dirname, '..', 'Sia')
+    datadir: nodePath.join(__dirname, '..', 'Sia'),
+    path: nodePath.join(__dirname, '..', 'Sia', process.platform === 'win32' ? 'siad.exe' : 'siad')
   }
   // Tracks if siad was last known to be running or not
   var running = false
@@ -150,15 +150,15 @@ function SiadWrapper () {
       return false
     }
 
-    // Set siad folder as configured settings.path
+    // Set siad folder as configured settings.datadir
     var processOptions = {
-      cwd: settings.path
+      cwd: settings.datadir
     }
 
     // If the detached option is set, spawn siad as a separate process to be
     // run in the background after the parent process has closed
     if (settings.detached) {
-      let log = nodePath.join(settings.path, 'out.log')
+      let log = nodePath.join(settings.datadir, 'out.log')
       let out = fs.openSync(log, 'a')
       let err = fs.openSync(log, 'a')
       processOptions.detached = true
@@ -167,11 +167,11 @@ function SiadWrapper () {
 
     // Spawn siad
     const Process = require('child_process').spawn
-    var daemonProcess = new Process(nodePath.join(settings.path, settings.fileName), [
+    var daemonProcess = new Process(settings.path, [
       '--api-addr=' + settings.address,
       '--rpc-addr=' + settings.rpcAddress,
       '--host-addr=' + settings.hostAddress,
-      '--sia-directory=' + settings.path
+      '--sia-directory=' + settings.datadir
     ], processOptions)
 
     // Exclude it from the parent process' event loop if detached
