@@ -2,7 +2,7 @@
 
 // Library for making requests
 const request = require('request')
-const BigNumber = require('bignumber.js');
+const BigNumber = require('bignumber.js')
 
 // Necessary node libraries to make sia.js emit events
 const Util = require('util')
@@ -278,7 +278,7 @@ function SiadWrapper () {
   // @return BigNumber
   function siacoinsToHastings (siacoins) {
     const siacoinNumber = new BigNumber(siacoins)
-    return siacoinNumber.multiply(hastingsPerSiacoin)
+    return siacoinNumber.times(hastingsPerSiacoin)
   }
 
   // Make certain members public
