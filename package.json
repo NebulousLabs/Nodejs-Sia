@@ -31,6 +31,7 @@
     "standard": "^5.3.1"
   },
   "dependencies": {
+    "bignumber": "^1.1.0",
     "request": "^2.65.0",
     "tar": "^2.2.1",
     "unzip": "^0.1.11"

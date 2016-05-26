@@ -2,6 +2,7 @@
 
 // Library for making requests
 const request = require('request')
+const BigNumber = require('bignumber.js')
 
 // Necessary node libraries to make sia.js emit events
 const Util = require('util')
@@ -23,6 +24,12 @@ function SiadWrapper () {
     datadir: nodePath.join(__dirname, '..', 'Sia'),
     path: nodePath.join(__dirname, '..', 'Sia', process.platform === 'win32' ? 'siad.exe' : 'siad')
   }
+  // Ensure precision for unit conversions
+  BigNumber.config({ DECIMAL_PLACES: 30 })
+  BigNumber.config({ EXPONENTIAL_AT: 1e+9 })
+  // Unit conversion constants
+  const hastingsPerSiacoin = new BigNumber(10).pow(24)
+
   // Tracks if siad was last known to be running or not
   var running = false
   // Keep reference to `this` to emit events from within contexts where `this`
@@ -258,6 +265,22 @@ function SiadWrapper () {
     return require('./download.js')(path, callback)
   }
 
+  // Sia unit conversion functions.
+  // Convert Hastings (the base unit) to Siacoin.  Use strings as input to avoid precision loss.
+  // @param {hastings :string}
+  // @return BigNumber
+  function hastingsToSiacoins (hastings) {
+    const hastingsNumber = new BigNumber(hastings)
+    return hastingsNumber.dividedBy(hastingsPerSiacoin)
+  }
+  // Convert Siacoin to Hastings.  Use strings as input to avoid precision loss.
+  // @params {siacoin :string}
+  // @return BigNumber
+  function siacoinsToHastings (siacoins) {
+    const siacoinNumber = new BigNumber(siacoins)
+    return siacoinNumber.times(hastingsPerSiacoin)
+  }
+
   // Make certain members public
   this.call = apiCall
   this.ifRunning = ifSiadRunning
@@ -266,6 +289,8 @@ function SiadWrapper () {
   this.stop = stop
   this.configure = configure
   this.download = download
+  this.siacoinsToHastings = siacoinsToHastings
+  this.hastingsToSiacoins = hastingsToSiacoins
 }
 
 // Inherit functions from `EventEmitter`'s prototype
