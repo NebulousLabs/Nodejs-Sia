@@ -134,7 +134,7 @@ function SiadWrapper () {
 
   /**
    * Starts the daemon as a long running background process
-   * @param {callback} callback - function to be run if successful
+   * @param {callback} callback - function to be called upon completion.  If start fails, call callback with the error.
    * @returns {boolean} if start was attempted
    */
   function start (callback) {
@@ -172,14 +172,22 @@ function SiadWrapper () {
       processOptions.stdio = [ 'ignore', out, err ]
     }
 
+    let daemonProcess
     // Spawn siad
-    const Process = require('child_process').spawn
-    var daemonProcess = new Process(settings.path, [
-      '--api-addr=' + settings.address,
-      '--rpc-addr=' + settings.rpcAddress,
-      '--host-addr=' + settings.hostAddress,
-      '--sia-directory=' + settings.datadir
-    ], processOptions)
+    try {
+      const Process = require('child_process').spawn
+      daemonProcess = new Process(settings.path, [
+        '--api-addr=' + settings.address,
+        '--rpc-addr=' + settings.rpcAddress,
+        '--host-addr=' + settings.hostAddress,
+        '--sia-directory=' + settings.datadir
+      ], processOptions)
+    } catch (e) {
+      if (callback !== null) {
+        callback(e)
+      }
+      return false
+    }
 
     // Exclude it from the parent process' event loop if detached
     if (settings.detached) {
