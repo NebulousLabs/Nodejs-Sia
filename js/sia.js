@@ -172,10 +172,11 @@ function SiadWrapper () {
       processOptions.stdio = [ 'ignore', out, err ]
     }
 
+    let daemonProcess
     // Spawn siad
     try {
       const Process = require('child_process').spawn
-      var daemonProcess = new Process(settings.path, [
+      daemonProcess = new Process(settings.path, [
         '--api-addr=' + settings.address,
         '--rpc-addr=' + settings.rpcAddress,
         '--host-addr=' + settings.hostAddress,
