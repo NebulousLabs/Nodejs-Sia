@@ -134,7 +134,7 @@ function SiadWrapper () {
 
   /**
    * Starts the daemon as a long running background process
-   * @param {callback} callback - function to be run if successful
+   * @param {callback} callback - function to be called upon completion.  If start fails, call callback with the error.
    * @returns {boolean} if start was attempted
    */
   function start (callback) {
