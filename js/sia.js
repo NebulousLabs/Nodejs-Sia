@@ -173,13 +173,20 @@ function SiadWrapper () {
     }
 
     // Spawn siad
-    const Process = require('child_process').spawn
-    var daemonProcess = new Process(settings.path, [
-      '--api-addr=' + settings.address,
-      '--rpc-addr=' + settings.rpcAddress,
-      '--host-addr=' + settings.hostAddress,
-      '--sia-directory=' + settings.datadir
-    ], processOptions)
+    try {
+      const Process = require('child_process').spawn
+      var daemonProcess = new Process(settings.path, [
+        '--api-addr=' + settings.address,
+        '--rpc-addr=' + settings.rpcAddress,
+        '--host-addr=' + settings.hostAddress,
+        '--sia-directory=' + settings.datadir
+      ], processOptions)
+    } catch (e) {
+      if (callback !== null) {
+        callback(e)
+      }
+      return false
+    }
 
     // Exclude it from the parent process' event loop if detached
     if (settings.detached) {
