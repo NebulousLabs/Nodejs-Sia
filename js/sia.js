@@ -161,6 +161,10 @@ function SiadWrapper () {
     var processOptions = {
       cwd: settings.datadir
     }
+    // Set siad's UID to the same as the calling process.
+    if (process.geteuid) {
+      processOptions.uid = process.geteuid()
+    }
 
     // If the detached option is set, spawn siad as a separate process to be
     // run in the background after the parent process has closed
