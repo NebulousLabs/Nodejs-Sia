@@ -205,10 +205,18 @@ function SiadWrapper () {
           self.emit(ev, arg1, arg2)
         })
       })
-      daemonProcess.on('exit', function (code) {
+      // Call callback with an error if 'exit' or 'error' or 'close' is thrown by the child process.
+      daemonProcess.on('exit', (code) => {
         running = false
         self.emit('exit', code)
+        if (callback !== null) {
+          callback(new Error('Siad exited unexpectedly'))
+        }
       })
+      if (callback !== null) {
+        daemonProcess.on('error', (e) => callback(new Error('Siad returned error: ' + e.toString())))
+        daemonProcess.on('close', () => callback(new Error('Siad unexpectedly closed')))
+      }
     }
 
     // Wait until siad finishes loading to call callback
