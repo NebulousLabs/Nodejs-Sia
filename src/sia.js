@@ -37,7 +37,7 @@ const launch = (settings) => {
 	if (process.geteuid) {
 		opts.uid = process.geteuid()
 	}
-	spawn(settings.path, [ '--sia-directory=' + settings.datadir ], opts)
+	return spawn(settings.path, [ '--sia-directory=' + settings.datadir ], opts)
 }
 const isSiadRunning = (address, is = () => {}, not = () => {}) => {
 	call(address, '/daemon/version')
