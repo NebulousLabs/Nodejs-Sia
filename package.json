@@ -11,7 +11,7 @@
     "build": "babel --presets es2015,stage-3 -d lib/ src/",
     "test": "npm run lint && mocha --compilers js:babel-register --recursive ./test",
     "prepublish": "npm run build",
-    "lint": "eslint --max-warnings 0 ./src",
+    "lint": "eslint --max-warnings 0 ./src ./test",
     "kill": "killall siad; while pgrep siad; do sleep .5; done;",
     "clean": "npm run kill && rm -rf Sia node_modules"
   },
@@ -34,6 +34,7 @@
     "babel-eslint": "^6.1.2",
     "babel-preset-es2015": "^6.9.0",
     "babel-preset-stage-3": "^6.11.0",
+    "chai": "^3.5.0",
     "eslint": "^3.1.0",
     "mocha": "^2.5.3"
   },
