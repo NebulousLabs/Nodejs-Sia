@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-expressions */
 import 'babel-polyfill'
 import BigNumber from 'bignumber.js'
-import { siacoinsToHastings, hastingsToSiacoins } from '../src/sia.js'
+import { siacoinsToHastings, hastingsToSiacoins, isSiadRunning } from '../src/sia.js'
 import { expect } from 'chai'
 import proxyquire from 'proxyquire'
 import { spy } from 'sinon'
+import nock from 'nock'
 // Mock the process calls required for testing Siad launch functionality.
 const mock = {
 	'child_process': {
@@ -48,6 +49,26 @@ describe('sia.js wrapper library', () => {
 		})
 	})
 	describe('siad interaction functions', () => {
+		describe('isSiadRunning', () => {
+			it('calls is() when siad is running', (done) => {
+				nock('http://localhost:9980')
+				  .get('/daemon/version')
+				  .reply(200, 'test-version')
+
+				isSiadRunning('localhost:9980', done, () => {
+					throw new Error('isSiadRunning called is()')
+				})
+			})
+			it('calls not() when siad is not running', (done) => {
+				nock('http://localhost:9980')
+				  .get('/daemon/version')
+				  .replyWithError('error')
+
+				isSiadRunning('localhost:9980', () => {
+					throw new Error('isSiadRunning called not()')
+				}, done)
+			})
+		})
 		describe('launch', () => {
 			it('starts siad with the given settings', () => {
 				const testSettings = {
