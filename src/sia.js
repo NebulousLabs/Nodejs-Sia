@@ -32,7 +32,13 @@ const call = (address, opts) => new Promise((resolve, reject) => {
 })
 // launch launches a new instance of siad using `settings`.
 // this function can `throw`, callers should catch errors from `spawn`.
-const launch = (settings) => spawn(settings.path, [ '--sia-directory=' + settings.datadir ])
+const launch = (settings) => {
+	const opts = { }
+	if (process.geteuid) {
+		opts.uid = process.geteuid()
+	}
+	spawn(settings.path, [ '--sia-directory=' + settings.datadir ], opts)
+}
 const isSiadRunning = (address, is = () => {}, not = () => {}) => {
 	call(address, '/daemon/version')
 	  .then(() => is())

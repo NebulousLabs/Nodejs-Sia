@@ -70,13 +70,13 @@ describe('sia.js wrapper library', () => {
 			})
 		})
 		describe('launch', () => {
-			it('starts siad with the given settings', () => {
+			it('starts siad with the expected settings', () => {
 				const testSettings = {
 					datadir: '/test/data',
 					path: '/test/siad',
 				}
 				launch(testSettings)
-				expect(mock['child_process'].spawn.calledWith(testSettings.path, ['--sia-directory=' + testSettings.datadir])).to.be.true
+				expect(mock['child_process'].spawn.calledWith(testSettings.path, ['--sia-directory=' + testSettings.datadir], { uid: process.geteuid() })).to.be.true
 			})
 		})
 	})
