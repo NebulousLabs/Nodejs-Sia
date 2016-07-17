@@ -215,7 +215,7 @@ function SiadWrapper () {
       })
       if (callback !== null) {
         daemonProcess.on('error', (e) => callback(new Error('Siad returned error: ' + e.toString())))
-        daemonProcess.on('close', callback(new Error('Siad unexpectedly closed')))
+        daemonProcess.on('close', () => callback(new Error('Siad unexpectedly closed')))
       }
     }
 
