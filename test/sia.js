@@ -1,7 +1,17 @@
+/* eslint-disable no-unused-expressions */
 import 'babel-polyfill'
 import BigNumber from 'bignumber.js'
 import { siacoinsToHastings, hastingsToSiacoins } from '../src/sia.js'
 import { expect } from 'chai'
+import proxyquire from 'proxyquire'
+import { spy } from 'sinon'
+// Mock the process calls required for testing Siad launch functionality.
+const mock = {
+	'child_process': {
+		spawn: spy(),
+	},
+}
+const { launch } = proxyquire('../src/sia.js', mock)
 
 BigNumber.config({DECIMAL_PLACES: 28})
 
@@ -26,7 +36,7 @@ describe('sia.js wrapper library', () => {
 			}
 		})
 		it('does not lose precision during unit conversions', () => {
-			// convert from base unit -> siacoins n_iter times, comparing the converted value at the end.
+			// convert from base unit -> siacoins n_iter times, comparing the (n_iter-times) converted value at the end.
 			// if precision loss were occuring, the original and the converted value would differ.
 			const n_iter = 10000
 			const originalSiacoin = new BigNumber('1337338498282837188273')
@@ -37,4 +47,18 @@ describe('sia.js wrapper library', () => {
 			expect(convertedSiacoin.toString()).to.equal(originalSiacoin.toString())
 		})
 	})
+	describe('siad interaction functions', () => {
+		describe('launch', () => {
+			it('starts siad with the given settings', () => {
+				const testSettings = {
+					datadir: '/test/data',
+					path: '/test/siad',
+				}
+				launch(testSettings)
+				expect(mock['child_process'].spawn.calledWith(testSettings.path, ['--sia-directory=' + testSettings.datadir])).to.be.true
+			})
+		})
+	})
 })
+
+/* eslint-enable no-unused-expressions */
