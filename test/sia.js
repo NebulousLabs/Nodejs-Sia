@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 import 'babel-polyfill'
 import BigNumber from 'bignumber.js'
-import { siacoinsToHastings, hastingsToSiacoins, isSiadRunning } from '../src/sia.js'
+import { siacoinsToHastings, hastingsToSiacoins, isRunning } from '../src/sia.js'
 import { expect } from 'chai'
 import proxyquire from 'proxyquire'
 import { spy } from 'sinon'
@@ -49,32 +49,20 @@ describe('sia.js wrapper library', () => {
 		})
 	})
 	describe('siad interaction functions', () => {
-		describe('isSiadRunning', () => {
-			it('resolves true when siad is running', (done) => {
+		describe('isRunning', () => {
+			it('returns true when siad is running', async function() {
 				nock('http://localhost:9980')
 				  .get('/daemon/version')
 				  .reply(200, 'test-version')
-
-				isSiadRunning('localhost:9980').then((running) => {
-					if (running) {
-						done()
-					} else {
-						throw new Error('isSiadRunning resolved false when siad was running')
-					}
-				})
+				const running = await isRunning('localhost:9980')
+				expect(running).to.be.true
 			})
-			it('resolves false when siad is not running', (done) => {
+			it('returns false when siad is not running', async function() {
 				nock('http://localhost:9980')
 				  .get('/daemon/version')
 				  .replyWithError('error')
-
-				isSiadRunning('localhost:9980').then((running) => {
-					if (!running) {
-						done()
-					} else {
-						throw new Error('isSiadRunning resolved true when siad was not running')
-					}
-				})
+				const running = await isRunning('localhost:9980')
+				expect(running).to.be.false
 			})
 		})
 		describe('launch', () => {

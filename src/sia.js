@@ -10,6 +10,9 @@ const hastingsPerSiacoin = new BigNumber('10').toPower(24)
 const siacoinsToHastings = (siacoins) => new BigNumber(siacoins).times(hastingsPerSiacoin)
 const hastingsToSiacoins = (hastings) => new BigNumber(hastings).dividedBy(hastingsPerSiacoin)
 
+// Call makes a call to the Sia API at `address`, with the request options defined by `opts`.
+// returns a promise which resolves with the response if the request completes successfully
+// and rejects with the error if the request fails.
 const call = (address, opts) => new Promise((resolve, reject) => {
 	let callOptions = opts
 	if (typeof opts === 'string') {
@@ -30,8 +33,10 @@ const call = (address, opts) => new Promise((resolve, reject) => {
 		}
 	})
 })
+
 // launch launches a new instance of siad using `settings`.
-// this function can `throw`, callers should catch errors from `spawn`.
+// this function can `throw`, callers should catch errors.
+// callers should also handle the lifecycle of the spawned process.
 const launch = (settings) => {
 	const opts = { }
 	if (process.geteuid) {
@@ -40,17 +45,20 @@ const launch = (settings) => {
 	return spawn(settings.path, [ '--sia-directory=' + settings.datadir ], opts)
 }
 
-// isSiadRunning returns a promise which resolves with true if siad is running at address,
-// or false if siad is not running.
-const isSiadRunning = (address) => new Promise((resolve) => {
-	call(address, '/daemon/version')
-	  .catch(() => resolve(false))
-	  .then(() => resolve(true))
-})
+// isRunning returns true if a successful call can be to /daemon/version
+// using the address provided in `address`.
+async function isRunning(address) {
+	try {
+		await call(address, '/daemon/version')
+		return true
+	} catch (e) {
+		return false
+	}
+}
 
 export {
 	launch,
-	isSiadRunning,
+	isRunning,
 	call,
 	siacoinsToHastings,
 	hastingsToSiacoins,
