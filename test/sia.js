@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 import 'babel-polyfill'
 import BigNumber from 'bignumber.js'
-import { siacoinsToHastings, hastingsToSiacoins, isRunning } from '../src/sia.js'
+import { siacoinsToHastings, hastingsToSiacoins, isRunning, connect } from '../src/sia.js'
 import { expect } from 'chai'
 import proxyquire from 'proxyquire'
 import { spy } from 'sinon'
@@ -63,6 +63,38 @@ describe('sia.js wrapper library', () => {
 				  .replyWithError('error')
 				const running = await isRunning('localhost:9980')
 				expect(running).to.be.false
+			})
+		})
+		describe('connect', () => {
+			it('throws an error if siad is unreachable', async function() {
+				nock('http://localhost:9980')
+				  .get('/daemon/version')
+				  .replyWithError('test-error')
+				let didThrow = false
+				try {
+					await connect('localhost:9980')
+				} catch (e) {
+					didThrow = true
+				}
+				expect(didThrow).to.be.true
+			})
+
+			let siad
+			it('returns a valid siad object if sia is reachable', async function() {
+				nock('http://localhost:9980')
+				  .get('/daemon/version')
+				  .reply(200, 'test-version')
+				siad = await connect('localhost:9980')
+				expect(siad).to.have.property('call')
+				expect(siad).to.have.property('isRunning')
+			})
+			it('can make api calls using siad.call', async function() {
+				nock('http://localhost:9980')
+				  .get('/daemon/version')
+				  .reply(200, 'test-version')
+
+				const version = await siad.call('/daemon/version')
+				expect(version).to.equal('test-version')
 			})
 		})
 		describe('launch', () => {

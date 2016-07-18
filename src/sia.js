@@ -56,7 +56,26 @@ async function isRunning(address) {
 	}
 }
 
+// siadWrapper returns an instance of a Siad API configured with address.
+const siadWrapper = (address) => {
+	const siadAddress = address
+	return {
+		call: (options) => call(siadAddress, options),
+		isRunning: () => isRunning(siadAddress),
+	}
+}
+
+// connect connects to a running Siad at `address` and returns a Siad object.
+async function connect(address) {
+	const running = await isRunning(address)
+	if (!running) {
+		throw new Error('could not connect to Sia at ' + address)
+	}
+	return siadWrapper(address)
+}
+
 export {
+	connect,
 	launch,
 	isRunning,
 	call,
