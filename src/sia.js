@@ -4,6 +4,9 @@ import BigNumber from 'bignumber.js'
 import { spawn } from 'child_process'
 import request from 'request'
 
+// sia.js error constants
+export const errCouldNotConnect = new Error('could not connect to the Sia daemon')
+
 // Siacoin -> hastings unit conversion functions
 // These make conversion between units of Sia easy and consistent for developers.
 const hastingsPerSiacoin = new BigNumber('10').toPower(24)
@@ -65,11 +68,11 @@ const siadWrapper = (address) => {
 	}
 }
 
-// connect connects to a running Siad at `address` and returns a Siad object.
+// connect connects to a running Siad at `address` and returns a siadWrapper object.
 async function connect(address) {
 	const running = await isRunning(address)
 	if (!running) {
-		throw new Error('could not connect to Sia at ' + address)
+		throw errCouldNotConnect
 	}
 	return siadWrapper(address)
 }

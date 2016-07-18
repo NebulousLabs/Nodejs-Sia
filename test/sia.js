@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 import 'babel-polyfill'
 import BigNumber from 'bignumber.js'
-import { siacoinsToHastings, hastingsToSiacoins, isRunning, connect } from '../src/sia.js'
+import { siacoinsToHastings, hastingsToSiacoins, isRunning, connect, errCouldNotConnect } from '../src/sia.js'
 import { expect } from 'chai'
 import proxyquire from 'proxyquire'
 import { spy } from 'sinon'
@@ -71,12 +71,15 @@ describe('sia.js wrapper library', () => {
 				  .get('/daemon/version')
 				  .replyWithError('test-error')
 				let didThrow = false
+				let err
 				try {
 					await connect('localhost:9980')
 				} catch (e) {
 					didThrow = true
+					err = e
 				}
 				expect(didThrow).to.be.true
+				expect(err).to.equal(errCouldNotConnect)
 			})
 
 			let siad
