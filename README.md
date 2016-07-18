@@ -15,33 +15,39 @@ requests.
 
 ## Prerequisites
 
-- [node & npm](https://nodejs.org/download/)
+- [node & npm (version 5.9.0+ recommended)](https://nodejs.org/download/)
 
 ## Installation
 
-Run the following to save sia.js in your project's `node_modules` folder
-
-```bash
-npm install -S sia.js
+```
+npm install sia.js
 ```
 
-## Usage
+## Example Usage
 
 ```js
-var Siad = require('sia.js')
-```
+import { launch, connect } from 'sia.js'
 
-```js
-Siad.call('/daemon/version', function(err, result) {
-  console.log(err, result)
-})
-```
+// Using promises...
+// connect to an already running Sia daemon on localhost:9980 and print its version
+connect('localhost:9980')
+  .then((siad) => {
+    siad.call('/daemon/version').then((version) => console.log(version))
+  })
+  .catch((err) => {
+    console.error(err)
+  })
 
-Should log something like:
-
-```bash
-null { version:
-  '0.4.8' }
+// Or ES7 async/await
+async function printVersion() {
+  try {
+    const siad = await connect('localhost:9980')
+    const version = await siad.call('/daemon/version')
+    console.log('Siad has version: ' + version)
+  } catch (e) {
+    console.error(e)
+  }
+}
 ```
 
 The call object passed as the first argument into call() are funneled directly
@@ -57,9 +63,7 @@ Siad.call({
   qs: {
     height: 0
   }
-}, function(err,result) {
-  console.log(err,result)
-});
+})
 ```
 
 Should log something like:
