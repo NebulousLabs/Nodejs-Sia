@@ -50,23 +50,31 @@ describe('sia.js wrapper library', () => {
 	})
 	describe('siad interaction functions', () => {
 		describe('isSiadRunning', () => {
-			it('calls is() when siad is running', (done) => {
+			it('resolves true when siad is running', (done) => {
 				nock('http://localhost:9980')
 				  .get('/daemon/version')
 				  .reply(200, 'test-version')
 
-				isSiadRunning('localhost:9980', done, () => {
-					throw new Error('isSiadRunning called is()')
+				isSiadRunning('localhost:9980').then((running) => {
+					if (running) {
+						done()
+					} else {
+						throw new Error('isSiadRunning resolved false when siad was running')
+					}
 				})
 			})
-			it('calls not() when siad is not running', (done) => {
+			it('resolves false when siad is not running', (done) => {
 				nock('http://localhost:9980')
 				  .get('/daemon/version')
 				  .replyWithError('error')
 
-				isSiadRunning('localhost:9980', () => {
-					throw new Error('isSiadRunning called not()')
-				}, done)
+				isSiadRunning('localhost:9980').then((running) => {
+					if (!running) {
+						done()
+					} else {
+						throw new Error('isSiadRunning resolved true when siad was not running')
+					}
+				})
 			})
 		})
 		describe('launch', () => {

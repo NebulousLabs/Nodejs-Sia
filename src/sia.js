@@ -39,11 +39,14 @@ const launch = (settings) => {
 	}
 	return spawn(settings.path, [ '--sia-directory=' + settings.datadir ], opts)
 }
-const isSiadRunning = (address, is = () => {}, not = () => {}) => {
+
+// isSiadRunning returns a promise which resolves with true if siad is running at address,
+// or false if siad is not running.
+const isSiadRunning = (address) => new Promise((resolve) => {
 	call(address, '/daemon/version')
-	  .then(() => is())
-	  .catch(() => not())
-}
+	  .catch(() => resolve(false))
+	  .then(() => resolve(true))
+})
 
 export {
 	launch,
