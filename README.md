@@ -26,7 +26,7 @@ npm install sia.js
 ## Example Usage
 
 ```js
-import { launch, connect } from 'sia.js'
+import { connect } from 'sia.js'
 
 // Using promises...
 // connect to an already running Sia daemon on localhost:9980 and print its version
@@ -47,6 +47,25 @@ async function printVersion() {
   } catch (e) {
     console.error(e)
   }
+}
+```
+
+`sia.js` can also launch a siad instance given a path on disk to the `siad` binary.  `launch` takes an object defining the flags to use as its second argument, and returns the `child_process` object.  You are responsible for keeping track of the state of this `child_process` object, and catching any errors `launch` may throw.
+
+```
+import { launch } from 'sia.js'
+
+try {
+  // Flags are passed in as an object in the second argument to `launch`.
+  // if no flags are passed, the default flags will be used.
+  const siadProcess = launch('/path/to/your/siad', {
+    'modules': 'cghmrtw',
+    'profile': true,
+  })
+  // siadProcess is a ChildProcess class.  See https://nodejs.org/api/child_process.html#child_process_class_childprocess for more information on what you can do with it.
+  siadProcess.on('error', (err) => console.log('siad encountered an error ' + err))
+} catch (e) {
+  console.error('error launching siad: ' + e.toString())
 }
 ```
 

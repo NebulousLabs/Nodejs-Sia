@@ -37,15 +37,34 @@ const call = (address, opts) => new Promise((resolve, reject) => {
 	})
 })
 
-// launch launches a new instance of siad using `settings`.
+// launch launches a new instance of siad using the flags defined by `settings`.
 // this function can `throw`, callers should catch errors.
 // callers should also handle the lifecycle of the spawned process.
-const launch = (settings) => {
+const launch = (path, settings) => {
+	const defaultSettings = {
+		'api-addr': 'localhost:9980',
+		'host-addr': ':9982',
+		'rpc-addr': ':9981',
+		'authenticate-api': false,
+		'disable-api-security': false,
+		'modules': 'cghmrtw',
+	}
+	const mergedSettings = Object.assign(defaultSettings, settings)
+	const filterFlags = (key) => mergedSettings[key] !== false
+	const mapFlags = (key) => {
+		if (typeof mergedSettings[key] === 'boolean') {
+			return '--' + key
+		} else {
+			return '--' + key + ' ' + mergedSettings[key]
+		}
+	}
+	const flags = Object.keys(mergedSettings).filter(filterFlags).map(mapFlags)
+
 	const opts = { }
 	if (process.geteuid) {
 		opts.uid = process.geteuid()
 	}
-	return spawn(settings.path, [ '--sia-directory=' + settings.datadir ], opts)
+	return spawn(path, flags, opts)
 }
 
 // isRunning returns true if a successful call can be to /daemon/version

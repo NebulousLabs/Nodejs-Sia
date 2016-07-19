@@ -101,13 +101,40 @@ describe('sia.js wrapper library', () => {
 			})
 		})
 		describe('launch', () => {
-			it('starts siad with the expected settings', () => {
+			afterEach(() => {
+				mock['child_process'].spawn.reset()
+			})
+			it('starts siad with sane defaults if no flags are passed', () => {
+				const expectedFlags = [
+					'--api-addr localhost:9980',
+					'--host-addr :9982',
+					'--rpc-addr :9981',
+					'--modules cghmrtw',
+				]
+				launch('testpath')
+				expect(mock['child_process'].spawn.called).to.be.true
+				expect(mock['child_process'].spawn.getCall(0).args[1]).to.deep.equal(expectedFlags)
+			})
+			it('starts siad with --sia-directory given sia-directory', () => {
 				const testSettings = {
-					datadir: '/test/data',
-					path: '/test/siad',
+					'sia-directory': 'testdir',
 				}
-				launch(testSettings)
-				expect(mock['child_process'].spawn.calledWith(testSettings.path, ['--sia-directory=' + testSettings.datadir], { uid: process.geteuid() })).to.be.true
+				launch('testpath', testSettings)
+				expect(mock['child_process'].spawn.called).to.be.true
+				const flags = mock['child_process'].spawn.getCall(0).args[1]
+				const path = mock['child_process'].spawn.getCall(0).args[0]
+				expect(flags).to.contain('--sia-directory testdir')
+				expect(path).to.equal('testpath')
+			})
+			it('sets boolean flags correctly', () => {
+				launch('testpath', {'testflag': true})
+				const flags = mock['child_process'].spawn.getCall(0).args[1]
+				expect(flags.indexOf('--testflag') !== -1).to.be.true
+				expect(flags.indexOf('--testflag true') === -1).to.be.true
+			})
+			it('starts siad with the same pid as the calling process', () => {
+				launch('testpath')
+				expect(mock['child_process'].spawn.getCall(0).args[2].uid).to.equal(process.geteuid())
 			})
 		})
 	})
