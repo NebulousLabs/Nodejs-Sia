@@ -39,7 +39,7 @@ connect('localhost:9980')
   })
 
 // Or ES7 async/await
-async function printVersion() {
+async function getVersion() {
   try {
     const siad = await connect('localhost:9980')
     const version = await siad.call('/daemon/version')
@@ -48,11 +48,28 @@ async function printVersion() {
     console.error(e)
   }
 }
+
+```
+You can also forgo using `connect` and use `call` directly by providing an API address as the first parameter:
+
+```js
+import { call } from 'sia.js'
+
+async function getVersion(address) {
+  try {
+    const version = await call('localhost:9980', '/daemon/version')
+    return version
+  } catch (e) {
+    console.error('error getting ' + address + ' version: ' + e.toString())
+  }
+}
+
+console.log(getVersion('10.0.0.1:9980'))
 ```
 
 `sia.js` can also launch a siad instance given a path on disk to the `siad` binary.  `launch` takes an object defining the flags to use as its second argument, and returns the `child_process` object.  You are responsible for keeping track of the state of this `child_process` object, and catching any errors `launch` may throw.
 
-```
+```js
 import { launch } from 'sia.js'
 
 try {
