@@ -9,6 +9,10 @@ export const errCouldNotConnect = new Error('could not connect to the Sia daemon
 
 // Siacoin -> hastings unit conversion functions
 // These make conversion between units of Sia easy and consistent for developers.
+// Never return exponentials from BigNumber.toString, since they confuse the API
+BigNumber.config({ EXPONENTIAL_AT: 1e+9 })
+BigNumber.config({ DECIMAL_PLACES: 30 })
+
 const hastingsPerSiacoin = new BigNumber('10').toPower(24)
 const siacoinsToHastings = (siacoins) => new BigNumber(siacoins).times(hastingsPerSiacoin)
 const hastingsToSiacoins = (hastings) => new BigNumber(hastings).dividedBy(hastingsPerSiacoin)
@@ -26,6 +30,7 @@ const call = (address, opts) => new Promise((resolve, reject) => {
 	callOptions.headers = {
 		'User-Agent': 'Sia-Agent',
 	}
+
 	request(callOptions, (err, res, body) => {
 		if (!err && res.statusCode !== 200) {
 			reject(body)
