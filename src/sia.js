@@ -82,7 +82,7 @@ async function isRunning(address) {
 const siadWrapper = (address) => {
 	const siadAddress = address
 	return {
-		call: (options) => call(siadAddress, options),
+		call: (options)  => call(siadAddress, options),
 		isRunning: () => isRunning(siadAddress),
 	}
 }

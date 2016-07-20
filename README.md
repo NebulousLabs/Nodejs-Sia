@@ -57,7 +57,7 @@ import { call } from 'sia.js'
 
 async function getVersion(address) {
   try {
-    const version = await call('localhost:9980', '/daemon/version')
+    const version = await call(address, '/daemon/version')
     return version
   } catch (e) {
     console.error('error getting ' + address + ' version: ' + e.toString())
