@@ -56,13 +56,7 @@ const launch = (path, settings) => {
 	}
 	const mergedSettings = Object.assign(defaultSettings, settings)
 	const filterFlags = (key) => mergedSettings[key] !== false
-	const mapFlags = (key) => {
-		if (typeof mergedSettings[key] === 'boolean') {
-			return '--' + key
-		} else {
-			return '--' + key + ' ' + mergedSettings[key]
-		}
-	}
+	const mapFlags = (key) => '--' + key + '=' + mergedSettings[key]
 	const flags = Object.keys(mergedSettings).filter(filterFlags).map(mapFlags)
 
 	const opts = { }
