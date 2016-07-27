@@ -15,33 +15,75 @@ requests.
 
 ## Prerequisites
 
-- [node & npm](https://nodejs.org/download/)
+- [node & npm (version 5.9.0+ recommended)](https://nodejs.org/download/)
 
 ## Installation
 
-Run the following to save sia.js in your project's `node_modules` folder
-
-```bash
-npm install -S sia.js
+```
+npm install sia.js
 ```
 
-## Usage
+## Example Usage
 
 ```js
-var Siad = require('sia.js')
+import { connect } from 'sia.js'
+
+// Using promises...
+// connect to an already running Sia daemon on localhost:9980 and print its version
+connect('localhost:9980')
+  .then((siad) => {
+    siad.call('/daemon/version').then((version) => console.log(version))
+  })
+  .catch((err) => {
+    console.error(err)
+  })
+
+// Or ES7 async/await
+async function getVersion() {
+  try {
+    const siad = await connect('localhost:9980')
+    const version = await siad.call('/daemon/version')
+    console.log('Siad has version: ' + version)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
 ```
+You can also forgo using `connect` and use `call` directly by providing an API address as the first parameter:
 
 ```js
-Siad.call('/daemon/version', function(err, result) {
-  console.log(err, result)
-})
+import { call } from 'sia.js'
+
+async function getVersion(address) {
+  try {
+    const version = await call(address, '/daemon/version')
+    return version
+  } catch (e) {
+    console.error('error getting ' + address + ' version: ' + e.toString())
+  }
+}
+
+console.log(getVersion('10.0.0.1:9980'))
 ```
 
-Should log something like:
+`sia.js` can also launch a siad instance given a path on disk to the `siad` binary.  `launch` takes an object defining the flags to use as its second argument, and returns the `child_process` object.  You are responsible for keeping track of the state of this `child_process` object, and catching any errors `launch` may throw.
 
-```bash
-null { version:
-  '0.4.8' }
+```js
+import { launch } from 'sia.js'
+
+try {
+  // Flags are passed in as an object in the second argument to `launch`.
+  // if no flags are passed, the default flags will be used.
+  const siadProcess = launch('/path/to/your/siad', {
+    'modules': 'cghmrtw',
+    'profile': true,
+  })
+  // siadProcess is a ChildProcess class.  See https://nodejs.org/api/child_process.html#child_process_class_childprocess for more information on what you can do with it.
+  siadProcess.on('error', (err) => console.log('siad encountered an error ' + err))
+} catch (e) {
+  console.error('error launching siad: ' + e.toString())
+}
 ```
 
 The call object passed as the first argument into call() are funneled directly
@@ -57,9 +99,7 @@ Siad.call({
   qs: {
     height: 0
   }
-}, function(err,result) {
-  console.log(err,result)
-});
+})
 ```
 
 Should log something like:
