@@ -32,7 +32,7 @@ const call = (address, opts) => new Promise((resolve, reject) => {
 	}
 
 	request(callOptions, (err, res, body) => {
-		if (!err && res.statusCode !== 200) {
+		if (!err && (res.statusCode < 200 || res.statusCode > 299)) {
 			reject(body)
 		} else if (!err) {
 			resolve(body)
@@ -73,6 +73,7 @@ async function isRunning(address) {
 		await call(address, '/daemon/version')
 		return true
 	} catch (e) {
+		console.error(e.toString())
 		return false
 	}
 }
