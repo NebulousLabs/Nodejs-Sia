@@ -32,7 +32,7 @@ const call = (address, opts) => new Promise((resolve, reject) => {
 	}
 
 	request(callOptions, (err, res, body) => {
-		if (!err && res.statusCode !== 200) {
+		if (!err && (res.statusCode < 200 || res.statusCode > 299)) {
 			reject(body)
 		} else if (!err) {
 			resolve(body)
@@ -67,7 +67,9 @@ const launch = (path, settings) => {
 }
 
 // isRunning returns true if a successful call can be to /daemon/version
-// using the address provided in `address`.
+// using the address provided in `address`.  Note that this call does not check
+// whether the siad process is still running, it only checks if a Sia API is
+// reachable.
 async function isRunning(address) {
 	try {
 		await call(address, '/daemon/version')
