@@ -66,13 +66,13 @@ const launch = (path, settings) => {
 	return spawn(path, flags, opts)
 }
 
-// isRunning returns true if a successful call can be to /daemon/version
+// isRunning returns true if a successful call can be to /gateway
 // using the address provided in `address`.  Note that this call does not check
 // whether the siad process is still running, it only checks if a Sia API is
 // reachable.
 async function isRunning(address) {
 	try {
-		await call(address, '/daemon/version')
+		await call(address, '/gateway')
 		return true
 	} catch (e) {
 		return false
