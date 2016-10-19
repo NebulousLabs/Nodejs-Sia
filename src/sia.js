@@ -27,6 +27,9 @@ const call = (address, opts) => new Promise((resolve, reject) => {
 	}
 	callOptions.url = 'http://' + address + callOptions.url
 	callOptions.json = true
+	if (typeof callOptions.timeout === 'undefined') {
+		callOptions.timeout = 3000
+	}
 	callOptions.headers = {
 		'User-Agent': 'Sia-Agent',
 	}
