@@ -1,6 +1,7 @@
 // sia.js: a lightweight node wrapper for starting, and communicating with
 // a Sia daemon (siad).
 import BigNumber from 'bignumber.js'
+import fs from 'fs'
 import { spawn } from 'child_process'
 import request from 'request'
 
@@ -59,7 +60,10 @@ const launch = (path, settings) => {
 	const mapFlags = (key) => '--' + key + '=' + mergedSettings[key]
 	const flags = Object.keys(mergedSettings).filter(filterFlags).map(mapFlags)
 
-	const opts = { }
+	const siadOutput = fs.openSync('./siad-output.log', 'a')
+	const opts = {
+		'stdio': [ process.stdin, siadOutput, siadOutput ],
+	}
 	if (process.geteuid) {
 		opts.uid = process.geteuid()
 	}
