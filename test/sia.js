@@ -167,7 +167,9 @@ describe('sia.js wrapper library', () => {
 			})
 			it('starts siad with the same pid as the calling process', () => {
 				launch('testpath')
-				expect(mock['child_process'].spawn.getCall(0).args[2].uid).to.equal(process.geteuid())
+				if (process.geteuid) {
+					expect(mock['child_process'].spawn.getCall(0).args[2].uid).to.equal(process.geteuid())
+				}
 			})
 		})
 	})
