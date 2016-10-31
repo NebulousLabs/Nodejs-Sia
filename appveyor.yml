@@ -1,0 +1,13 @@
+version: "{build}"
+ 
+platform: x64
+environment:
+  nodejs_version: "6.9.0"
+
+install:
+  - npm install
+
+test_script:
+  - npm test
+
+build: off
