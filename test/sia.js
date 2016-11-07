@@ -110,6 +110,7 @@ describe('sia.js wrapper library', () => {
 				const expectedOpts = {
 					url: 'http://localhost:9980/test',
 					json: true,
+					timeout: 10000,
 					headers: {
 						'User-Agent': 'Sia-Agent',
 					},
