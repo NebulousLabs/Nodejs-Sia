@@ -64,9 +64,9 @@ const launch = (path, settings) => {
 
 	const siadOutput = (() => {
 		if (typeof mergedSettings['sia-directory'] !== 'undefined') {
-			return fs.openSync(Path.join(mergedSettings['sia-directory'], './siad-output.log'), 'a')
+			return fs.openSync(Path.join(mergedSettings['sia-directory'], './siad-output.log'), 'w')
 		}
-		return fs.openSync('./siad-output.log', 'a')
+		return fs.openSync('./siad-output.log', 'w')
 	})()
 
 	const opts = {
