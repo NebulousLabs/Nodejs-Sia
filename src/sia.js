@@ -8,7 +8,6 @@ import request from 'request'
 
 // sia.js error constants
 export const errCouldNotConnect = new Error('could not connect to the Sia daemon')
-export const minimumVersion = '1.0.3'
 
 // Siacoin -> hastings unit conversion functions
 // These make conversion between units of Sia easy and consistent for developers.
