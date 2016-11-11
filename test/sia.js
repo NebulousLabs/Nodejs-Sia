@@ -6,6 +6,7 @@ import { expect } from 'chai'
 import proxyquire from 'proxyquire'
 import { spy } from 'sinon'
 import nock from 'nock'
+import fs from 'fs'
 // Mock the process calls required for testing Siad launch functionality.
 const mock = {
 	'child_process': {
@@ -151,6 +152,13 @@ describe('sia.js wrapper library', () => {
 			it('starts siad with --sia-directory given sia-directory', () => {
 				const testSettings = {
 					'sia-directory': 'testdir',
+				}
+				try {
+					fs.mkdirSync('./testdir')
+				} catch (e) {
+					if (e.code !== 'EEXIST') {
+						throw e
+					}
 				}
 				launch('testpath', testSettings)
 				expect(mock['child_process'].spawn.called).to.be.true

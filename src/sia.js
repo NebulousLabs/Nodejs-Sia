@@ -3,10 +3,12 @@
 import BigNumber from 'bignumber.js'
 import fs from 'fs'
 import { spawn } from 'child_process'
+import Path from 'path'
 import request from 'request'
 
 // sia.js error constants
 export const errCouldNotConnect = new Error('could not connect to the Sia daemon')
+export const minimumVersion = '1.0.3'
 
 // Siacoin -> hastings unit conversion functions
 // These make conversion between units of Sia easy and consistent for developers.
@@ -60,7 +62,13 @@ const launch = (path, settings) => {
 	const mapFlags = (key) => '--' + key + '=' + mergedSettings[key]
 	const flags = Object.keys(mergedSettings).filter(filterFlags).map(mapFlags)
 
-	const siadOutput = fs.openSync('./siad-output.log', 'a')
+	const siadOutput = (() => {
+		if (typeof mergedSettings['sia-directory'] !== 'undefined') {
+			return fs.openSync(Path.join(mergedSettings['sia-directory'], './siad-output.log'), 'a')
+		}
+		return fs.openSync('./siad-output.log', 'a')
+	})()
+
 	const opts = {
 		'stdio': [ process.stdin, siadOutput, siadOutput ],
 	}
