@@ -1,16 +1,26 @@
 /* eslint-disable no-unused-expressions */
 import 'babel-polyfill'
 import BigNumber from 'bignumber.js'
+import Path from 'path'
 import { siacoinsToHastings, hastingsToSiacoins, isRunning, connect, errCouldNotConnect } from '../src/sia.js'
 import { expect } from 'chai'
 import proxyquire from 'proxyquire'
-import { spy } from 'sinon'
+import { spy, stub } from 'sinon'
 import nock from 'nock'
 import fs from 'fs'
+
 // Mock the process calls required for testing Siad launch functionality.
+const mockProcessObject = {
+	stdout: {
+		pipe: spy(),
+	},
+	stderr: {
+		pipe: spy(),
+	},
+}
 const mock = {
 	'child_process': {
-		spawn: spy(),
+		spawn: stub().returns(mockProcessObject),
 	},
 	'request': spy(),
 }
@@ -138,6 +148,8 @@ describe('sia.js wrapper library', () => {
 		describe('launch', () => {
 			afterEach(() => {
 				mock['child_process'].spawn.reset()
+				mockProcessObject.stdout.pipe.reset()
+				mockProcessObject.stderr.pipe.reset()
 			})
 			it('starts siad with sane defaults if no flags are passed', () => {
 				const expectedFlags = [
@@ -179,6 +191,14 @@ describe('sia.js wrapper library', () => {
 				if (process.geteuid) {
 					expect(mock['child_process'].spawn.getCall(0).args[2].uid).to.equal(process.geteuid())
 				}
+			})
+			it('pipes output to file correctly given no sia-dir', () => {
+				launch('testpath')
+				expect(mockProcessObject.stdout.pipe.calledWith(fs.createWriteStream('siad-output.log')))
+			})
+			it('pipes output to file correctly given a sia-dir', () => {
+				launch('testpath', { 'sia-directory': 'testdir' })
+				expect(mockProcessObject.stdout.pipe.calledWith(fs.createWriteStream(Path.join('testdir', 'siad-output.log'))))
 			})
 		})
 	})

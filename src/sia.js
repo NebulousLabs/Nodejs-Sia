@@ -66,18 +66,19 @@ const launch = (path, settings) => {
 
 	const siadOutput = (() => {
 		if (typeof mergedSettings['sia-directory'] !== 'undefined') {
-			return fs.openSync(Path.join(mergedSettings['sia-directory'], './siad-output.log'), 'w')
+			return fs.createWriteStream(Path.join(mergedSettings['sia-directory'], 'siad-output.log'))
 		}
-		return fs.openSync('./siad-output.log', 'w')
+		return fs.createWriteStream('siad-output.log')
 	})()
 
-	const opts = {
-		'stdio': [ process.stdin, siadOutput, siadOutput ],
-	}
+	const opts = { }
 	if (process.geteuid) {
 		opts.uid = process.geteuid()
 	}
-	return spawn(path, flags, opts)
+	const siadProcess = spawn(path, flags, opts)
+	siadProcess.stdout.pipe(siadOutput)
+	siadProcess.stderr.pipe(siadOutput)
+	return siadProcess
 }
 
 // isRunning returns true if a successful call can be to /gateway
