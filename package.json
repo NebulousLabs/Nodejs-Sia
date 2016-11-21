@@ -47,6 +47,7 @@
   },
   "dependencies": {
     "bignumber.js": "^2.3.0",
+    "http-request-queue": "^0.1.0",
     "request": "^2.65.0"
   }
 }

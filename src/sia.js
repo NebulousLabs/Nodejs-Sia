@@ -4,7 +4,10 @@ import BigNumber from 'bignumber.js'
 import fs from 'fs'
 import { spawn } from 'child_process'
 import Path from 'path'
-import request from 'request'
+import rqueue from 'http-request-queue'
+
+const concurrentRequestLimit = 100
+const request = rqueue(concurrentRequestLimit).request
 
 // sia.js error constants
 export const errCouldNotConnect = new Error('could not connect to the Sia daemon')
@@ -19,10 +22,9 @@ const hastingsPerSiacoin = new BigNumber('10').toPower(24)
 const siacoinsToHastings = (siacoins) => new BigNumber(siacoins).times(hastingsPerSiacoin)
 const hastingsToSiacoins = (hastings) => new BigNumber(hastings).dividedBy(hastingsPerSiacoin)
 
-// Call makes a call to the Sia API at `address`, with the request options defined by `opts`.
-// returns a promise which resolves with the response if the request completes successfully
-// and rejects with the error if the request fails.
-const call = (address, opts) => new Promise((resolve, reject) => {
+// makeRequest takes an address and opts and returns a valid request.js request
+// options object.
+export const makeRequest = (address, opts) => {
 	let callOptions = opts
 	if (typeof opts === 'string') {
 		callOptions = { url: opts }
@@ -36,16 +38,25 @@ const call = (address, opts) => new Promise((resolve, reject) => {
 		'User-Agent': 'Sia-Agent',
 	}
 
-	request(callOptions, (err, res, body) => {
-		if (!err && (res.statusCode < 200 || res.statusCode > 299)) {
-			reject(body)
-		} else if (!err) {
-			resolve(body)
-		} else {
-			reject(err)
+	return callOptions
+}
+
+// Call makes a call to the Sia API at `address`, with the request options defined by `opts`.
+// returns a promise which resolves with the response if the request completes successfully
+// and rejects with the error if the request fails.
+const call = async (address, opts) => {
+	const callOptions = makeRequest(address, opts)
+
+	try {
+		const res = await request(callOptions)
+		if (res.response.statusCode < 200 || res.response.statusCode > 299) {
+			throw res.body
 		}
-	})
-})
+		return res.body
+	} catch (e) {
+		throw e
+	}
+}
 
 // launch launches a new instance of siad using the flags defined by `settings`.
 // this function can `throw`, callers should catch errors.
