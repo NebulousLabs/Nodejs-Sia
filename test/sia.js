@@ -22,9 +22,8 @@ const mock = {
 	'child_process': {
 		spawn: stub().returns(mockProcessObject),
 	},
-	'request': spy(),
 }
-const { launch, call } = proxyquire('../src/sia.js', mock)
+const { launch, makeRequest } = proxyquire('../src/sia.js', mock)
 
 BigNumber.config({DECIMAL_PLACES: 28})
 
@@ -112,12 +111,8 @@ describe('sia.js wrapper library', () => {
 				expect(gateway).to.equal('success')
 			})
 		})
-		describe('call', () => {
-			afterEach(() => {
-				mock['request'].reset()
-			})
+		describe('makeRequest', () => {
 			it('constructs the correct request options given a string parameter', () => {
-				call('localhost:9980', '/test')
 				const expectedOpts = {
 					url: 'http://localhost:9980/test',
 					json: true,
@@ -126,23 +121,22 @@ describe('sia.js wrapper library', () => {
 						'User-Agent': 'Sia-Agent',
 					},
 				}
-				expect(mock['request'].getCall(0).args[0]).to.deep.equal(expectedOpts)
+				expect(makeRequest('localhost:9980', '/test')).to.deep.equal(expectedOpts)
 			})
 			it('constructs the correct request options given an object parameter', () => {
 				const testparams = {
 					test: 'test',
 				}
-				call('localhost:9980', {
-					url: '/test',
+				const expectedOpts = {
+					url: 'http://localhost:9980/test',
 					qs: testparams,
-				})
-				expect(mock['request'].getCall(0).args[0]).to.have.property('qs')
-				expect(mock['request'].getCall(0).args[0].qs).to.deep.equal(testparams)
-				expect(mock['request'].getCall(0).args[0].url).to.equal('http://localhost:9980/test')
-				expect(mock['request'].getCall(0).args[0].headers).to.deep.equal({
-					'User-Agent': 'Sia-Agent',
-				})
-				expect(mock['request'].getCall(0).args[0].json).to.be.true
+					headers: {
+						'User-Agent': 'Sia-Agent',
+					},
+					timeout: 10000,
+					json: true,
+				}
+				expect(makeRequest('localhost:9980', { url: '/test', qs: testparams })).to.deep.equal(expectedOpts)
 			})
 		})
 		describe('launch', () => {
