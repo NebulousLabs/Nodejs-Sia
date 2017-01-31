@@ -98,7 +98,10 @@ const launch = (path, settings) => {
 // reachable.
 async function isRunning(address) {
 	try {
-		await call(address, '/gateway')
+		await call(address, {
+			url: '/gateway',
+			timeout: 6e5, // 10 minutes
+		})
 		return true
 	} catch (e) {
 		return false
