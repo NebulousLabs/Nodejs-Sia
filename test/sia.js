@@ -150,7 +150,6 @@ describe('sia.js wrapper library', () => {
 					'--api-addr=localhost:9980',
 					'--host-addr=:9982',
 					'--rpc-addr=:9981',
-					'--modules=cghmrtw',
 				]
 				launch('testpath')
 				expect(mock['child_process'].spawn.called).to.be.true
