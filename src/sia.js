@@ -6,8 +6,8 @@ import { spawn } from 'child_process'
 import Path from 'path'
 import rqueue from 'http-request-queue'
 
-const concurrentRequestLimit = 100
-const request = rqueue(concurrentRequestLimit).request
+const defaultConcurrentRequestLimit = 40
+let requestQueue = rqueue(defaultConcurrentRequestLimit)
 
 // sia.js error constants
 export const errCouldNotConnect = new Error('could not connect to the Sia daemon')
@@ -48,7 +48,7 @@ const call = async (address, opts) => {
 	const callOptions = makeRequest(address, opts)
 
 	try {
-		const res = await request(callOptions)
+		const res = await requestQueue.request(callOptions)
 		if (res.response.statusCode < 200 || res.response.statusCode > 299) {
 			throw res.body
 		}
@@ -124,6 +124,12 @@ async function connect(address) {
 		throw errCouldNotConnect
 	}
 	return siadWrapper(address)
+}
+
+// setConcurrentRequestLimit limits the number of in-flight http requests,
+// useful for applications that do lots of polling.
+export const setConcurrentRequestLimit = (nrequests) => {
+	requestQueue = rqueue(nrequests)
 }
 
 export {
