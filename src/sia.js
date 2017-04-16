@@ -68,7 +68,6 @@ const launch = (path, settings) => {
 		'rpc-addr': ':9981',
 		'authenticate-api': false,
 		'disable-api-security': false,
-		'modules': 'cghmrtw',
 	}
 	const mergedSettings = Object.assign(defaultSettings, settings)
 	const filterFlags = (key) => mergedSettings[key] !== false
