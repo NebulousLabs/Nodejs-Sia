@@ -128,7 +128,7 @@ async function connect(address) {
 
 // setConcurrentRequestLimit limits the number of in-flight http requests,
 // useful for applications that do lots of polling.
-export const setConcurrentRequestLimit = (nrequests) => {
+const setConcurrentRequestLimit = (nrequests) => {
 	requestQueue = rqueue(nrequests)
 }
 
@@ -139,4 +139,5 @@ export {
 	call,
 	siacoinsToHastings,
 	hastingsToSiacoins,
+	setConcurrentRequestLimit,
 }
