@@ -55,7 +55,6 @@
     "babel-runtime": "^6.23.0",
     "bignumber.js": "^2.3.0",
     "eslint": "^3.19.0",
-    "http-request-queue": "^0.1.0",
     "request": "^2.81.0"
   }
 }

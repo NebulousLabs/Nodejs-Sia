@@ -121,7 +121,7 @@ describe('sia.js wrapper library', () => {
 						'User-Agent': 'Sia-Agent',
 					},
 				}
-				expect(makeRequest('localhost:9980', '/test')).to.deep.equal(expectedOpts)
+				expect(makeRequest('localhost:9980', '/test')).to.contain.keys(expectedOpts)
 			})
 			it('constructs the correct request options given an object parameter', () => {
 				const testparams = {
@@ -136,7 +136,7 @@ describe('sia.js wrapper library', () => {
 					timeout: 10000,
 					json: true,
 				}
-				expect(makeRequest('localhost:9980', { url: '/test', qs: testparams })).to.deep.equal(expectedOpts)
+				expect(makeRequest('localhost:9980', { url: '/test', qs: testparams })).to.contain.keys(expectedOpts)
 			})
 		})
 		describe('launch', () => {
