@@ -4,10 +4,13 @@ import BigNumber from 'bignumber.js'
 import fs from 'fs'
 import { spawn } from 'child_process'
 import Path from 'path'
-import rqueue from 'http-request-queue'
+import request from 'request'
+import http from 'http'
 
-const defaultConcurrentRequestLimit = 40
-let requestQueue = rqueue(defaultConcurrentRequestLimit)
+const agent = new http.Agent({
+	keepAlive: true,
+	maxSockets: 20,
+})
 
 // sia.js error constants
 export const errCouldNotConnect = new Error('could not connect to the Sia daemon')
@@ -37,6 +40,7 @@ export const makeRequest = (address, opts) => {
 	callOptions.headers = {
 		'User-Agent': 'Sia-Agent',
 	}
+	callOptions.pool = agent
 
 	return callOptions
 }
@@ -44,19 +48,18 @@ export const makeRequest = (address, opts) => {
 // Call makes a call to the Sia API at `address`, with the request options defined by `opts`.
 // returns a promise which resolves with the response if the request completes successfully
 // and rejects with the error if the request fails.
-const call = async (address, opts) => {
+const call = (address, opts) => new Promise((resolve, reject) => {
 	const callOptions = makeRequest(address, opts)
-
-	try {
-		const res = await requestQueue.request(callOptions)
-		if (res.response.statusCode < 200 || res.response.statusCode > 299) {
-			throw res.body
+	request(callOptions, (err, res, body) => {
+		if (!err && (res.statusCode < 200 || res.statusCode > 299)) {
+			reject(body)
+		} else if (!err) {
+			resolve(body)
+		} else {
+			reject(err)
 		}
-		return res.body
-	} catch (e) {
-		throw e
-	}
-}
+	})
+})
 
 // launch launches a new instance of siad using the flags defined by `settings`.
 // this function can `throw`, callers should catch errors.
@@ -125,12 +128,6 @@ async function connect(address) {
 	return siadWrapper(address)
 }
 
-// setConcurrentRequestLimit limits the number of in-flight http requests,
-// useful for applications that do lots of polling.
-const setConcurrentRequestLimit = (nrequests) => {
-	requestQueue = rqueue(nrequests)
-}
-
 export {
 	connect,
 	launch,
@@ -138,5 +135,5 @@ export {
 	call,
 	siacoinsToHastings,
 	hastingsToSiacoins,
-	setConcurrentRequestLimit,
+	agent,
 }
