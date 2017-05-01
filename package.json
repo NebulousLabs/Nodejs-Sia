@@ -43,6 +43,7 @@
     "mocha": "^2.5.3",
     "nock": "^8.0.0",
     "proxyquire": "^1.7.10",
+    "readdir": "0.0.13",
     "sinon": "^1.17.4"
   },
   "dependencies": {

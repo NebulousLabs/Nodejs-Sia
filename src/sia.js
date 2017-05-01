@@ -7,9 +7,9 @@ import Path from 'path'
 import request from 'request'
 import http from 'http'
 
-const reqPool = new http.Agent({
+const agent = new http.Agent({
 	keepAlive: true,
-	maxSockets: 40,
+	maxSockets: 20,
 })
 
 // sia.js error constants
@@ -40,7 +40,7 @@ export const makeRequest = (address, opts) => {
 	callOptions.headers = {
 		'User-Agent': 'Sia-Agent',
 	}
-	callOptions.pool = reqPool
+	callOptions.pool = agent
 
 	return callOptions
 }
@@ -135,4 +135,5 @@ export {
 	call,
 	siacoinsToHastings,
 	hastingsToSiacoins,
+	agent,
 }

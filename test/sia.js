@@ -2,7 +2,9 @@
 import 'babel-polyfill'
 import BigNumber from 'bignumber.js'
 import Path from 'path'
-import { siacoinsToHastings, hastingsToSiacoins, isRunning, connect, errCouldNotConnect } from '../src/sia.js'
+import { agent, siacoinsToHastings, call, hastingsToSiacoins, isRunning, connect, errCouldNotConnect } from '../src/sia.js'
+import http from 'http'
+import readdir from 'readdir'
 import { expect } from 'chai'
 import proxyquire from 'proxyquire'
 import { spy, stub } from 'sinon'
@@ -193,6 +195,36 @@ describe('sia.js wrapper library', () => {
 				launch('testpath', { 'sia-directory': 'testdir' })
 				expect(mockProcessObject.stdout.pipe.calledWith(fs.createWriteStream(Path.join('testdir', 'siad-output.log'))))
 			})
+		})
+		describe('call', () => {
+			it('should not leak file descriptors making heavy requests to unresponsive endpoints', (done) => {
+				const ndescriptors = () => readdir.readSync('/proc/'+process.pid+'/fd').length
+				// create a http server that returns from requests very slowly
+				const testsrv = http.createServer((req, res) => {
+					setTimeout(() => {
+						res.writeHead(200)
+						res.end()
+					}, 20000)
+				})
+				testsrv.listen(31243, '127.0.0.1', () => {
+					// record the initial FD count
+					const initialDescriptors = ndescriptors()
+					// make lots of calls
+					for (let i = 0; i < 400; i++) {
+						call('localhost:31243', '/test')
+					}
+					// wait a bit for all the calls to be received
+					setTimeout(() => {
+						// after calling, additional file descriptor count should not
+						// exceed agent.maxSockets * 2 (one FD for the server, one for the
+						// client)
+						const descriptorDelta = ndescriptors() - initialDescriptors
+						expect(descriptorDelta).to.be.most(agent.maxSockets*2)
+						testsrv.close()
+						done()
+					}, 2000)
+				})
+			}).timeout(20000)
 		})
 	})
 })
