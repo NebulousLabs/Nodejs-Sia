@@ -63,14 +63,14 @@ describe('sia.js wrapper library', () => {
 	})
 	describe('siad interaction functions', () => {
 		describe('isRunning', () => {
-			it('returns true when siad is running', async function() {
+			it('returns true when siad is running', async() => {
 				nock('http://localhost:9980')
 				  .get('/gateway')
 				  .reply(200, 'success')
 				const running = await isRunning('localhost:9980')
 				expect(running).to.be.true
 			})
-			it('returns false when siad is not running', async function() {
+			it('returns false when siad is not running', async() => {
 				nock('http://localhost:9980')
 				  .get('/gateway')
 				  .replyWithError('error')
@@ -79,7 +79,7 @@ describe('sia.js wrapper library', () => {
 			})
 		})
 		describe('connect', () => {
-			it('throws an error if siad is unreachable', async function() {
+			it('throws an error if siad is unreachable', async() => {
 				nock('http://localhost:9980')
 				  .get('/gateway')
 				  .replyWithError('test-error')
@@ -96,7 +96,7 @@ describe('sia.js wrapper library', () => {
 			})
 
 			let siad
-			it('returns a valid siad object if sia is reachable', async function() {
+			it('returns a valid siad object if sia is reachable', async() => {
 				nock('http://localhost:9980')
 				  .get('/gateway')
 				  .reply(200, 'success')
@@ -104,7 +104,7 @@ describe('sia.js wrapper library', () => {
 				expect(siad).to.have.property('call')
 				expect(siad).to.have.property('isRunning')
 			})
-			it('can make api calls using siad.call', async function() {
+			it('can make api calls using siad.call', async() => {
 				nock('http://localhost:9980')
 				  .get('/gateway')
 				  .reply(200, 'success')
@@ -143,7 +143,7 @@ describe('sia.js wrapper library', () => {
 		})
 		describe('launch', () => {
 			afterEach(() => {
-				mock['child_process'].spawn.reset()
+				mock['child_process'].spawn = stub().returns(mockProcessObject)
 				mockProcessObject.stdout.pipe.reset()
 				mockProcessObject.stderr.pipe.reset()
 			})
